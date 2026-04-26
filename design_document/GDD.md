@@ -1,4 +1,4 @@
-# Fleshgolem - Comprehensive Game Design Document
+# Fleshgolem - Game Design Document
 
 ## 1. Document Purpose
 
