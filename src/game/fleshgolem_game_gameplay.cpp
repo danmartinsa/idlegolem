@@ -69,10 +69,12 @@ void FleshgolemGame::SpawnPlayer() {
 
 void FleshgolemGame::BuildStarterBody() {
     auto createStarterPart =
-        [this](const std::string& name, const SlotType slot, const Attributes bonus,
-               const float healthBonus, const float attackBonus, const float attackIntervalBonus,
-               const float critChanceBonus, const float armorBonus, const float evasionBonus,
-               const float decayRate, const float stabilityDemand, const SDL_Color color) {
+        [this](const std::string& name, const SlotType slot,
+               const Attributes bonus, const float healthBonus,
+               const float attackBonus, const float attackIntervalBonus,
+               const float critChanceBonus, const float armorBonus,
+               const float evasionBonus, const float decayRate,
+               const float stabilityDemand, const SDL_Color color) {
             const entt::entity part = registry_.create();
             BodyPart bodyPart;
             bodyPart.name = name;
@@ -96,40 +98,52 @@ void FleshgolemGame::BuildStarterBody() {
         };
 
     createStarterPart("Stitched Skull", SlotType::Head,
-                      Attributes{0.0F, 0.0F, 0.0F, 0.7F, 1.1F, 0.0F}, 0.0F, 0.0F, 0.0F, 0.02F, 0.0F,
-                      0.01F, 0.06F, 0.8F, SDL_Color{105, 105, 124, 255});
+                      Attributes{0.0F, 0.0F, 0.0F, 0.7F, 1.1F, 0.0F}, 0.0F,
+                      0.0F, 0.0F, 0.02F, 0.0F, 0.01F, 0.06F, 0.8F,
+                      SDL_Color{105, 105, 124, 255});
     createStarterPart("Patchwork Torso", SlotType::Torso,
-                      Attributes{0.0F, 2.2F, 0.0F, 0.0F, 0.0F, 0.0F}, 28.0F, 0.0F, 0.0F, 0.0F, 1.6F,
-                      0.0F, 0.06F, 1.1F, SDL_Color{126, 88, 82, 255});
+                      Attributes{0.0F, 2.2F, 0.0F, 0.0F, 0.0F, 0.0F}, 28.0F,
+                      0.0F, 0.0F, 0.0F, 1.6F, 0.0F, 0.06F, 1.1F,
+                      SDL_Color{126, 88, 82, 255});
     createStarterPart("Scrap Left Arm", SlotType::LeftArm,
-                      Attributes{1.2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F}, 0.0F, 2.4F, -0.03F, 0.0F,
-                      0.0F, 0.0F, 0.07F, 0.8F, SDL_Color{142, 112, 98, 255});
+                      Attributes{1.2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F}, 0.0F,
+                      2.4F, -0.03F, 0.0F, 0.0F, 0.0F, 0.07F, 0.8F,
+                      SDL_Color{142, 112, 98, 255});
     createStarterPart("Scrap Right Arm", SlotType::RightArm,
-                      Attributes{1.2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F}, 0.0F, 2.4F, -0.03F, 0.0F,
-                      0.0F, 0.0F, 0.07F, 0.8F, SDL_Color{142, 112, 98, 255});
+                      Attributes{1.2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F}, 0.0F,
+                      2.4F, -0.03F, 0.0F, 0.0F, 0.0F, 0.07F, 0.8F,
+                      SDL_Color{142, 112, 98, 255});
     createStarterPart("Bent Left Leg", SlotType::LeftLeg,
-                      Attributes{0.0F, 0.0F, 1.1F, 0.0F, 0.0F, 0.0F}, 0.0F, 0.0F, -0.02F, 0.0F,
-                      0.0F, 0.015F, 0.08F, 0.8F, SDL_Color{108, 126, 100, 255});
+                      Attributes{0.0F, 0.0F, 1.1F, 0.0F, 0.0F, 0.0F}, 0.0F,
+                      0.0F, -0.02F, 0.0F, 0.0F, 0.015F, 0.08F, 0.8F,
+                      SDL_Color{108, 126, 100, 255});
     createStarterPart("Bent Right Leg", SlotType::RightLeg,
-                      Attributes{0.0F, 0.0F, 1.1F, 0.0F, 0.0F, 0.0F}, 0.0F, 0.0F, -0.02F, 0.0F,
-                      0.0F, 0.015F, 0.08F, 0.8F, SDL_Color{108, 126, 100, 255});
+                      Attributes{0.0F, 0.0F, 1.1F, 0.0F, 0.0F, 0.0F}, 0.0F,
+                      0.0F, -0.02F, 0.0F, 0.0F, 0.015F, 0.08F, 0.8F,
+                      SDL_Color{108, 126, 100, 255});
     createStarterPart("Donor Heart", SlotType::Heart,
-                      Attributes{0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F}, 18.0F, 0.0F, 0.0F, 0.0F, 0.0F,
-                      0.0F, 0.08F, 0.9F, SDL_Color{172, 72, 84, 255});
+                      Attributes{0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F}, 18.0F,
+                      0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.08F, 0.9F,
+                      SDL_Color{172, 72, 84, 255});
     createStarterPart("Threadbare Lungs", SlotType::Lungs,
-                      Attributes{0.0F, 0.5F, 0.8F, 0.0F, 0.0F, 0.0F}, 0.0F, 0.0F, -0.02F, 0.0F,
-                      0.0F, 0.01F, 0.07F, 0.8F, SDL_Color{132, 144, 160, 255});
+                      Attributes{0.0F, 0.5F, 0.8F, 0.0F, 0.0F, 0.0F}, 0.0F,
+                      0.0F, -0.02F, 0.0F, 0.0F, 0.01F, 0.07F, 0.8F,
+                      SDL_Color{132, 144, 160, 255});
     createStarterPart("Tallow Stomach", SlotType::Stomach,
-                      Attributes{0.0F, 0.4F, 0.0F, 0.6F, 0.0F, 0.2F}, 6.0F, 0.0F, 0.0F, 0.0F, 0.0F,
-                      0.0F, 0.06F, 0.9F, SDL_Color{176, 144, 108, 255});
+                      Attributes{0.0F, 0.4F, 0.0F, 0.6F, 0.0F, 0.2F}, 6.0F,
+                      0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.06F, 0.9F,
+                      SDL_Color{176, 144, 108, 255});
     createStarterPart("Copper Spine", SlotType::Spine,
-                      Attributes{0.8F, 0.0F, 0.0F, 0.8F, 0.0F, 0.0F}, 0.0F, 1.6F, 0.0F, 0.0F, 0.6F,
-                      0.0F, 0.06F, 1.0F, SDL_Color{148, 118, 96, 255});
-    createStarterPart("Hide Skin", SlotType::Skin, Attributes{0.0F, 0.6F, 0.0F, 0.0F, 0.0F, 0.0F},
-                      8.0F, 0.0F, 0.0F, 0.0F, 1.8F, 0.005F, 0.05F, 0.8F,
+                      Attributes{0.8F, 0.0F, 0.0F, 0.8F, 0.0F, 0.0F}, 0.0F,
+                      1.6F, 0.0F, 0.0F, 0.6F, 0.0F, 0.06F, 1.0F,
+                      SDL_Color{148, 118, 96, 255});
+    createStarterPart("Hide Skin", SlotType::Skin,
+                      Attributes{0.0F, 0.6F, 0.0F, 0.0F, 0.0F, 0.0F}, 8.0F,
+                      0.0F, 0.0F, 0.0F, 1.8F, 0.005F, 0.05F, 0.8F,
                       SDL_Color{158, 124, 104, 255});
-    createStarterPart("Hot Blood", SlotType::Blood, Attributes{0.0F, 0.0F, 0.0F, 0.0F, 0.7F, 0.4F},
-                      0.0F, 0.0F, 0.0F, 0.01F, 0.0F, 0.0F, 0.07F, 0.9F,
+    createStarterPart("Hot Blood", SlotType::Blood,
+                      Attributes{0.0F, 0.0F, 0.0F, 0.0F, 0.7F, 0.4F}, 0.0F,
+                      0.0F, 0.0F, 0.01F, 0.0F, 0.0F, 0.07F, 0.9F,
                       SDL_Color{194, 88, 96, 255});
 }
 
@@ -146,13 +160,16 @@ void FleshgolemGame::SpawnEnemyIfNeeded(const float deltaSeconds) {
 
     const RunState& runState = registry_.get<RunState>(player_);
     const bool boss = runState.zoneEncounter >= runState.encountersPerZone - 1;
-    const bool elite = boss || runState.zoneEncounter == runState.encountersPerZone - 2 ||
-                       runState.eliteCountdown <= 0;
-    const int tier = 1 + runState.zoneIndex + runState.zoneEncounter / 2 + runState.depth / 5;
+    const bool elite =
+        boss || runState.zoneEncounter == runState.encountersPerZone - 2 ||
+        runState.eliteCountdown <= 0;
+    const int tier = 1 + runState.zoneIndex + runState.zoneEncounter / 2 +
+                     runState.depth / 5;
     SpawnEnemy(tier, elite, boss);
 }
 
-void FleshgolemGame::SpawnEnemy(const int tier, const bool elite, const bool boss) {
+void FleshgolemGame::SpawnEnemy(const int tier, const bool elite,
+                                const bool boss) {
     const RunState& runState = registry_.get<RunState>(player_);
     const ZoneDefinition& zone = ZoneDefinitionFor(runState.zoneIndex);
 
@@ -162,7 +179,8 @@ void FleshgolemGame::SpawnEnemy(const int tier, const bool elite, const bool bos
     } else if (elite) {
         kind = zone.elite;
     } else {
-        kind = RandomFloat(rng_, 0.0F, 1.0F) < 0.55F ? zone.primary : zone.secondary;
+        kind = RandomFloat(rng_, 0.0F, 1.0F) < 0.55F ? zone.primary
+                                                     : zone.secondary;
     }
 
     const EnemyTemplate enemyTemplate = EnemyTemplateFor(kind);
@@ -187,15 +205,19 @@ void FleshgolemGame::SpawnEnemy(const int tier, const bool elite, const bool bos
 
     CombatStats enemyStats;
     enemyStats.attackPower = enemyTemplate.attack * scale;
-    enemyStats.attackInterval =
-        Clamp(enemyTemplate.attackInterval - static_cast<float>(tier - 1) * 0.03F, 0.6F, 1.8F);
+    enemyStats.attackInterval = Clamp(
+        enemyTemplate.attackInterval - static_cast<float>(tier - 1) * 0.03F,
+        0.6F, 1.8F);
     enemyStats.critChance = boss ? 0.14F : (elite ? 0.1F : 0.05F);
     enemyStats.critMultiplier = boss ? 1.9F : 1.6F;
-    enemyStats.armor = enemyTemplate.armor + static_cast<float>(tier - 1) * 0.6F +
+    enemyStats.armor = enemyTemplate.armor +
+                       static_cast<float>(tier - 1) * 0.6F +
                        (elite ? 1.0F : 0.0F) + (boss ? 1.8F : 0.0F);
-    enemyStats.evasion = Clamp(enemyTemplate.evasion + (elite ? 0.04F : 0.0F), 0.0F, 0.32F);
+    enemyStats.evasion =
+        Clamp(enemyTemplate.evasion + (elite ? 0.04F : 0.0F), 0.0F, 0.32F);
 
-    const float maxHealth = enemyTemplate.health * scale * (boss ? 1.35F : 1.0F);
+    const float maxHealth =
+        enemyTemplate.health * scale * (boss ? 1.35F : 1.0F);
 
     registry_.emplace<Name>(currentEnemy_, enemyName);
     registry_.emplace<EnemyTag>(currentEnemy_);
@@ -209,13 +231,14 @@ void FleshgolemGame::SpawnEnemy(const int tier, const bool elite, const bool bos
     mutableRunState.highestTier = std::max(mutableRunState.highestTier, tier);
 
     enemyLaneX_ = kLaneEnemySpawnX;
-    enemyApproachSpeed_ =
-        116.0F + static_cast<float>(tier) * 10.0F + (elite ? 16.0F : 0.0F) + (boss ? 10.0F : 0.0F);
+    enemyApproachSpeed_ = 116.0F + static_cast<float>(tier) * 10.0F +
+                          (elite ? 16.0F : 0.0F) + (boss ? 10.0F : 0.0F);
     combatJoined_ = false;
 
     std::ostringstream line;
     line << zone.name << " wave " << (mutableRunState.zoneEncounter + 1) << "/"
-         << mutableRunState.encountersPerZone << ": " << enemyName << " enters the lane.";
+         << mutableRunState.encountersPerZone << ": " << enemyName
+         << " enters the lane.";
     AddLog(line.str());
 }
 
@@ -246,7 +269,8 @@ void FleshgolemGame::UpdateLane(const float deltaSeconds) {
     combatJoined_ = true;
     registry_.get<CombatTimer>(player_).attackCooldown = 0.12F;
     registry_.get<CombatTimer>(currentEnemy_).attackCooldown = 0.45F;
-    AddLog(registry_.get<Name>(currentEnemy_).value + " reaches the graft line. Combat starts.");
+    AddLog(registry_.get<Name>(currentEnemy_).value +
+           " reaches the graft line. Combat starts.");
 }
 
 void FleshgolemGame::RebuildRunUpgradesFromSkills() {
@@ -257,18 +281,24 @@ void FleshgolemGame::RebuildRunUpgradesFromSkills() {
     }
 
     const RunState& runState = registry_.get<RunState>(player_);
-    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount); ++skillIndex) {
+    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount);
+         ++skillIndex) {
         const SkillNodeDefinition& definition = SkillDefinition(skillIndex);
-        const int rank = runState.skillRanks[static_cast<std::size_t>(skillIndex)];
+        const int rank =
+            runState.skillRanks[static_cast<std::size_t>(skillIndex)];
         for (int rankStep = 0; rankStep < rank; ++rankStep) {
             AddSkillEffect(&runUpgrades_, definition.effectPerRank);
         }
     }
 
-    runUpgrades_.decayMultiplier = std::max(0.45F, runUpgrades_.decayMultiplier);
-    runUpgrades_.harvestMultiplier = std::max(1.0F, runUpgrades_.harvestMultiplier);
-    runUpgrades_.harvestSpeedMultiplier = std::max(1.0F, runUpgrades_.harvestSpeedMultiplier);
-    runUpgrades_.levelHealPercent = Clamp(runUpgrades_.levelHealPercent, 0.0F, 0.4F);
+    runUpgrades_.decayMultiplier =
+        std::max(0.45F, runUpgrades_.decayMultiplier);
+    runUpgrades_.harvestMultiplier =
+        std::max(1.0F, runUpgrades_.harvestMultiplier);
+    runUpgrades_.harvestSpeedMultiplier =
+        std::max(1.0F, runUpgrades_.harvestSpeedMultiplier);
+    runUpgrades_.levelHealPercent =
+        Clamp(runUpgrades_.levelHealPercent, 0.0F, 0.4F);
 }
 
 int FleshgolemGame::FindFirstSpendableSkill() const {
@@ -277,10 +307,13 @@ int FleshgolemGame::FindFirstSpendableSkill() const {
     }
 
     const RunState& runState = registry_.get<RunState>(player_);
-    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount); ++skillIndex) {
+    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount);
+         ++skillIndex) {
         const SkillNodeDefinition& definition = SkillDefinition(skillIndex);
-        const int rank = runState.skillRanks[static_cast<std::size_t>(skillIndex)];
-        if (rank < definition.maxRank && SkillPrerequisitesMet(definition, runState.skillRanks)) {
+        const int rank =
+            runState.skillRanks[static_cast<std::size_t>(skillIndex)];
+        if (rank < definition.maxRank &&
+            SkillPrerequisitesMet(definition, runState.skillRanks)) {
             return skillIndex;
         }
     }
@@ -288,7 +321,8 @@ int FleshgolemGame::FindFirstSpendableSkill() const {
     return 0;
 }
 
-int FleshgolemGame::FindSkillSelection(const int directionX, const int directionY) const {
+int FleshgolemGame::FindSkillSelection(const int directionX,
+                                       const int directionY) const {
     if (directionX == 0 && directionY == 0) {
         return selectedSkillIndex_;
     }
@@ -297,7 +331,8 @@ int FleshgolemGame::FindSkillSelection(const int directionX, const int direction
     int bestIndex = selectedSkillIndex_;
     float bestDistance = 1.0e9F;
 
-    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount); ++skillIndex) {
+    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount);
+         ++skillIndex) {
         if (skillIndex == selectedSkillIndex_) {
             continue;
         }
@@ -306,8 +341,10 @@ int FleshgolemGame::FindSkillSelection(const int directionX, const int direction
         const float deltaX = candidateCenter.x - currentCenter.x;
         const float deltaY = candidateCenter.y - currentCenter.y;
 
-        if ((directionX < 0 && deltaX >= -8.0F) || (directionX > 0 && deltaX <= 8.0F) ||
-            (directionY < 0 && deltaY >= -8.0F) || (directionY > 0 && deltaY <= 8.0F)) {
+        if ((directionX < 0 && deltaX >= -8.0F) ||
+            (directionX > 0 && deltaX <= 8.0F) ||
+            (directionY < 0 && deltaY >= -8.0F) ||
+            (directionY > 0 && deltaY <= 8.0F)) {
             continue;
         }
 
@@ -355,8 +392,10 @@ void FleshgolemGame::AwardExperience(const int amount) {
 
         if (runUpgrades_.levelHealPercent > 0.0F) {
             Health& health = registry_.get<Health>(player_);
-            health.current = std::min(
-                health.maximum, health.current + health.maximum * runUpgrades_.levelHealPercent);
+            health.current =
+                std::min(health.maximum,
+                         health.current +
+                             health.maximum * runUpgrades_.levelHealPercent);
         }
 
         std::ostringstream line;
@@ -402,8 +441,8 @@ bool FleshgolemGame::TrySpendSkillPoint(const int skillIndex) {
     TriggerRewardAudio();
 
     std::ostringstream line;
-    line << (rank == 1 ? "Unlocked " : "Enhanced ") << definition.name << " to rank " << rank << "/"
-         << definition.maxRank << ".";
+    line << (rank == 1 ? "Unlocked " : "Enhanced ") << definition.name
+         << " to rank " << rank << "/" << definition.maxRank << ".";
     AddLog(line.str());
     return true;
 }
@@ -420,7 +459,8 @@ void FleshgolemGame::RecalculatePlayerStats() {
     current.agility = base.agility + runUpgrades_.attributeBonus.agility;
     current.reason = base.reason + runUpgrades_.attributeBonus.reason;
     current.instinct = base.instinct + runUpgrades_.attributeBonus.instinct;
-    current.corruption = base.corruption + runUpgrades_.attributeBonus.corruption;
+    current.corruption =
+        base.corruption + runUpgrades_.attributeBonus.corruption;
 
     float bonusHealth = runUpgrades_.healthBonus;
     float bonusAttack = runUpgrades_.attackBonus;
@@ -454,7 +494,8 @@ void FleshgolemGame::RecalculatePlayerStats() {
     }
 
     StabilityState stability;
-    stability.capacity = 7.0F + current.reason * 0.9F + current.vitality * 0.45F +
+    stability.capacity = 7.0F + current.reason * 0.9F +
+                         current.vitality * 0.45F +
                          runUpgrades_.stabilityCapacityBonus;
     stability.demand = stabilityDemand;
     stability.overload = std::max(0.0F, stability.demand - stability.capacity);
@@ -462,30 +503,38 @@ void FleshgolemGame::RecalculatePlayerStats() {
 
     CombatStats stats;
     stats.attackPower =
-        std::max(4.0F, 7.0F + current.might * 2.5F + bonusAttack - stability.overload * 1.2F);
-    stats.attackInterval = Clamp(
-        1.4F - current.agility * 0.05F + intervalBonus + stability.overload * 0.05F, 0.42F, 1.7F);
-    stats.critChance = Clamp(
-        0.04F + current.instinct * 0.01F + critBonus - stability.overload * 0.01F, 0.01F, 0.5F);
+        std::max(4.0F, 7.0F + current.might * 2.5F + bonusAttack -
+                           stability.overload * 1.2F);
+    stats.attackInterval = Clamp(1.4F - current.agility * 0.05F +
+                                     intervalBonus + stability.overload * 0.05F,
+                                 0.42F, 1.7F);
+    stats.critChance = Clamp(0.04F + current.instinct * 0.01F + critBonus -
+                                 stability.overload * 0.01F,
+                             0.01F, 0.5F);
     stats.critMultiplier = 1.45F + current.reason * 0.04F;
-    stats.armor =
-        std::max(0.0F, current.vitality * 0.56F + armorBonus - stability.overload * 0.45F);
-    stats.evasion =
-        Clamp(current.agility * 0.012F + evasionBonus - stability.overload * 0.01F, 0.0F, 0.38F);
+    stats.armor = std::max(0.0F, current.vitality * 0.56F + armorBonus -
+                                     stability.overload * 0.45F);
+    stats.evasion = Clamp(
+        current.agility * 0.012F + evasionBonus - stability.overload * 0.01F,
+        0.0F, 0.38F);
 
     Health& health = registry_.get<Health>(player_);
     const float previousMaximum = std::max(1.0F, health.maximum);
-    const float missingHealth = std::max(0.0F, previousMaximum - health.current);
+    const float missingHealth =
+        std::max(0.0F, previousMaximum - health.current);
     health.maximum =
-        std::max(36.0F, 78.0F + current.vitality * 16.0F + bonusHealth - stability.overload * 8.0F);
-    health.current = Clamp(health.maximum - missingHealth, 0.0F, health.maximum);
+        std::max(36.0F, 78.0F + current.vitality * 16.0F + bonusHealth -
+                            stability.overload * 8.0F);
+    health.current =
+        Clamp(health.maximum - missingHealth, 0.0F, health.maximum);
 
     registry_.replace<Attributes>(player_, current);
     registry_.replace<CombatStats>(player_, stats);
 }
 
 void FleshgolemGame::UpdateCombat(const float deltaSeconds) {
-    if (!combatJoined_ || currentEnemy_ == entt::null || !registry_.valid(currentEnemy_)) {
+    if (!combatJoined_ || currentEnemy_ == entt::null ||
+        !registry_.valid(currentEnemy_)) {
         return;
     }
 
@@ -498,19 +547,22 @@ void FleshgolemGame::UpdateCombat(const float deltaSeconds) {
     enemyTimer.attackCooldown -= deltaSeconds;
 
     while (sceneState_ == SceneState::Running && currentEnemy_ != entt::null &&
-           registry_.valid(currentEnemy_) && playerTimer.attackCooldown <= 0.0F) {
+           registry_.valid(currentEnemy_) &&
+           playerTimer.attackCooldown <= 0.0F) {
         ResolveAttack(player_, currentEnemy_);
         playerTimer.attackCooldown += playerStats.attackInterval;
     }
 
     while (sceneState_ == SceneState::Running && currentEnemy_ != entt::null &&
-           registry_.valid(currentEnemy_) && enemyTimer.attackCooldown <= 0.0F) {
+           registry_.valid(currentEnemy_) &&
+           enemyTimer.attackCooldown <= 0.0F) {
         ResolveAttack(currentEnemy_, player_);
         enemyTimer.attackCooldown += enemyStats.attackInterval;
     }
 }
 
-void FleshgolemGame::ResolveAttack(const entt::entity attacker, const entt::entity defender) {
+void FleshgolemGame::ResolveAttack(const entt::entity attacker,
+                                   const entt::entity defender) {
     if (!registry_.valid(attacker) || !registry_.valid(defender)) {
         return;
     }
@@ -526,7 +578,8 @@ void FleshgolemGame::ResolveAttack(const entt::entity attacker, const entt::enti
     }
 
     float damage = attackStats.attackPower * RandomFloat(rng_, 0.9F, 1.15F);
-    const bool criticalHit = RandomFloat(rng_, 0.0F, 1.0F) < attackStats.critChance;
+    const bool criticalHit =
+        RandomFloat(rng_, 0.0F, 1.0F) < attackStats.critChance;
     if (criticalHit) {
         damage *= attackStats.critMultiplier;
     }
@@ -566,7 +619,8 @@ void FleshgolemGame::OnEnemyDefeated(const entt::entity enemy) {
     RunState& runState = registry_.get<RunState>(player_);
 
     resources.kills++;
-    resources.essence += 1 + enemyInfo.tier + (enemyInfo.elite ? 2 : 0) + (enemyInfo.boss ? 2 : 0) +
+    resources.essence += 1 + enemyInfo.tier + (enemyInfo.elite ? 2 : 0) +
+                         (enemyInfo.boss ? 2 : 0) +
                          runUpgrades_.bonusEssencePerKill;
     runState.depth++;
     if (enemyInfo.elite) {
@@ -588,15 +642,19 @@ void FleshgolemGame::OnEnemyDefeated(const entt::entity enemy) {
     corpse.tier = enemyInfo.tier;
     corpse.elite = enemyInfo.elite;
     corpse.boss = enemyInfo.boss;
-    corpse.harvestTimer = enemyInfo.boss ? 1.4F : (enemyInfo.elite ? 1.1F : 0.8F);
+    corpse.harvestTimer =
+        enemyInfo.boss ? 1.4F : (enemyInfo.elite ? 1.1F : 0.8F);
     corpse.maxHarvestTimer = corpse.harvestTimer;
     corpse.biomassReward =
-        RandomInt(rng_, 5 + enemyInfo.tier * 2, 8 + enemyInfo.tier * 3 + (enemyInfo.elite ? 4 : 0));
+        RandomInt(rng_, 5 + enemyInfo.tier * 2,
+                  8 + enemyInfo.tier * 3 + (enemyInfo.elite ? 4 : 0));
     corpse.boneMealReward =
-        RandomInt(rng_, 2 + enemyInfo.tier, 4 + enemyInfo.tier * 2 + (enemyInfo.elite ? 2 : 0));
+        RandomInt(rng_, 2 + enemyInfo.tier,
+                  4 + enemyInfo.tier * 2 + (enemyInfo.elite ? 2 : 0));
     corpse.researchReward = enemyInfo.boss ? 3 : (enemyInfo.elite ? 1 : 0);
 
-    registry_.emplace<Name>(currentCorpse_, std::string("Remains of ") + enemyTemplate.name);
+    registry_.emplace<Name>(currentCorpse_,
+                            std::string("Remains of ") + enemyTemplate.name);
     registry_.emplace<Corpse>(currentCorpse_, corpse);
 
     combatJoined_ = false;
@@ -604,7 +662,8 @@ void FleshgolemGame::OnEnemyDefeated(const entt::entity enemy) {
     registry_.destroy(enemy);
     currentEnemy_ = entt::null;
 
-    AwardExperience(2 + enemyInfo.tier + (enemyInfo.elite ? 2 : 0) + (enemyInfo.boss ? 3 : 0));
+    AwardExperience(2 + enemyInfo.tier + (enemyInfo.elite ? 2 : 0) +
+                    (enemyInfo.boss ? 3 : 0));
 }
 
 void FleshgolemGame::UpdateHarvesting(const float deltaSeconds) {
@@ -629,23 +688,29 @@ void FleshgolemGame::HarvestCorpse(const entt::entity corpseEntity) {
     RunState& runState = registry_.get<RunState>(player_);
     Body& body = registry_.get<Body>(player_);
 
-    resources.biomass += static_cast<int>(
-        std::round(static_cast<float>(corpse.biomassReward) * runUpgrades_.harvestMultiplier));
-    resources.boneMeal += static_cast<int>(
-        std::round(static_cast<float>(corpse.boneMealReward) * runUpgrades_.harvestMultiplier));
+    resources.biomass +=
+        static_cast<int>(std::round(static_cast<float>(corpse.biomassReward) *
+                                    runUpgrades_.harvestMultiplier));
+    resources.boneMeal +=
+        static_cast<int>(std::round(static_cast<float>(corpse.boneMealReward) *
+                                    runUpgrades_.harvestMultiplier));
     resources.research += corpse.researchReward;
 
     const EnemyTemplate enemyTemplate = EnemyTemplateFor(corpse.source);
-    const bool dropPart = corpse.boss || corpse.elite || RandomFloat(rng_, 0.0F, 1.0F) < 0.78F;
+    const bool dropPart =
+        corpse.boss || corpse.elite || RandomFloat(rng_, 0.0F, 1.0F) < 0.78F;
 
     if (dropPart) {
         const SlotType slot =
-            enemyTemplate.lootSlots[RandomInt(rng_, 0, enemyTemplate.lootSlotCount - 1)];
-        int rarity = std::min(5, corpse.tier - 1 + (corpse.elite ? 2 : 0) + (corpse.boss ? 1 : 0));
-        rarity = std::max(0, rarity + (RandomFloat(rng_, 0.0F, 1.0F) < 0.22F ? 1 : 0));
+            enemyTemplate
+                .lootSlots[RandomInt(rng_, 0, enemyTemplate.lootSlotCount - 1)];
+        int rarity = std::min(5, corpse.tier - 1 + (corpse.elite ? 2 : 0) +
+                                     (corpse.boss ? 1 : 0));
+        rarity = std::max(
+            0, rarity + (RandomFloat(rng_, 0.0F, 1.0F) < 0.22F ? 1 : 0));
         rarity = std::min(rarity, 5);
-        const float scale =
-            1.0F + static_cast<float>(corpse.tier - 1) * 0.3F + static_cast<float>(rarity) * 0.26F;
+        const float scale = 1.0F + static_cast<float>(corpse.tier - 1) * 0.3F +
+                            static_cast<float>(rarity) * 0.26F;
 
         Attributes bonus{};
         float healthBonus = 0.0F;
@@ -723,8 +788,8 @@ void FleshgolemGame::HarvestCorpse(const entt::entity corpseEntity) {
         bodyPart.armorBonus = armorBonus;
         bodyPart.evasionBonus = evasionBonus;
         bodyPart.freshness = 100.0F;
-        bodyPart.decayRate =
-            0.07F + static_cast<float>(corpse.tier) * 0.015F + static_cast<float>(rarity) * 0.01F;
+        bodyPart.decayRate = 0.07F + static_cast<float>(corpse.tier) * 0.015F +
+                             static_cast<float>(rarity) * 0.01F;
         bodyPart.stabilityDemand = 0.8F + scale * 0.55F;
         bodyPart.color = RarityColor(rarity);
 
@@ -733,28 +798,34 @@ void FleshgolemGame::HarvestCorpse(const entt::entity corpseEntity) {
 
         const auto evaluatePartScore = [this](const entt::entity entity) {
             const BodyPart& part = registry_.get<BodyPart>(entity);
-            const float freshnessFactor = Clamp(part.freshness / 100.0F, 0.15F, 1.0F);
+            const float freshnessFactor =
+                Clamp(part.freshness / 100.0F, 0.15F, 1.0F);
             return freshnessFactor *
                    (part.attackBonus * 4.5F + part.healthBonus * 0.32F +
-                    part.attributeBonus.might * 3.0F + part.attributeBonus.vitality * 2.4F +
-                    part.attributeBonus.agility * 2.2F + part.attributeBonus.reason * 1.6F +
-                    part.attributeBonus.instinct * 2.0F + part.critChanceBonus * 110.0F +
-                    part.armorBonus * 2.2F + part.evasionBonus * 120.0F -
-                    part.stabilityDemand * 0.4F);
+                    part.attributeBonus.might * 3.0F +
+                    part.attributeBonus.vitality * 2.4F +
+                    part.attributeBonus.agility * 2.2F +
+                    part.attributeBonus.reason * 1.6F +
+                    part.attributeBonus.instinct * 2.0F +
+                    part.critChanceBonus * 110.0F + part.armorBonus * 2.2F +
+                    part.evasionBonus * 120.0F - part.stabilityDemand * 0.4F);
         };
 
         const std::size_t slotIndex = SlotIndex(slot);
         const entt::entity equipped = body.slots[slotIndex];
         const float newScore = evaluatePartScore(part);
-        const float oldScore = (equipped != entt::null && registry_.valid(equipped))
-                                   ? evaluatePartScore(equipped)
-                                   : -1.0F;
+        const float oldScore =
+            (equipped != entt::null && registry_.valid(equipped))
+                ? evaluatePartScore(equipped)
+                : -1.0F;
 
         if (equipped == entt::null || newScore > oldScore * 1.08F) {
             if (equipped != entt::null && registry_.valid(equipped)) {
-                resources.biomass += 2 + registry_.get<BodyPart>(equipped).rarity * 2;
+                resources.biomass +=
+                    2 + registry_.get<BodyPart>(equipped).rarity * 2;
                 resources.salvaged++;
-                AddLog("Auto-salvaged replaced " + registry_.get<Name>(equipped).value + ".");
+                AddLog("Auto-salvaged replaced " +
+                       registry_.get<Name>(equipped).value + ".");
                 registry_.destroy(equipped);
             }
 
@@ -772,14 +843,17 @@ void FleshgolemGame::HarvestCorpse(const entt::entity corpseEntity) {
             registry_.destroy(part);
         }
     } else {
-        AddLog("The remains yield only slurry, Bone Meal, and research scraps.");
+        AddLog(
+            "The remains yield only slurry, Bone Meal, and research scraps.");
     }
 
     runState.totalClears++;
     runState.zoneEncounter++;
 
-    const bool zoneCleared = runState.zoneEncounter >= runState.encountersPerZone;
-    const bool finalZoneCleared = zoneCleared && runState.zoneIndex + 1 >= runState.totalZones;
+    const bool zoneCleared =
+        runState.zoneEncounter >= runState.encountersPerZone;
+    const bool finalZoneCleared =
+        zoneCleared && runState.zoneIndex + 1 >= runState.totalZones;
 
     registry_.destroy(corpseEntity);
     currentCorpse_ = entt::null;
@@ -798,7 +872,9 @@ void FleshgolemGame::HarvestCorpse(const entt::entity corpseEntity) {
     if (corpse.boss) {
         AddLog("Boss remains processed. The lane churns toward the next wave.");
     } else if (corpse.elite) {
-        AddLog("Elite remains processed. The tree can be opened at any time with K.");
+        AddLog(
+            "Elite remains processed. The tree can be opened at any time with "
+            "K.");
     }
 
     enemySpawnDelay_ = 1.0F;
@@ -806,7 +882,8 @@ void FleshgolemGame::HarvestCorpse(const entt::entity corpseEntity) {
 
 void FleshgolemGame::UpdateDecay(const float deltaSeconds) {
     const float overload = registry_.get<StabilityState>(player_).overload;
-    const float multiplier = (1.0F + overload * 0.22F) * runUpgrades_.decayMultiplier;
+    const float multiplier =
+        (1.0F + overload * 0.22F) * runUpgrades_.decayMultiplier;
 
     auto view = registry_.view<BodyPart, EquippedTo>();
     for (auto [entity, part, equipped] : view.each()) {
@@ -815,8 +892,8 @@ void FleshgolemGame::UpdateDecay(const float deltaSeconds) {
         }
 
         const float previousFreshness = part.freshness;
-        part.freshness =
-            std::max(0.0F, part.freshness - part.decayRate * multiplier * deltaSeconds);
+        part.freshness = std::max(
+            0.0F, part.freshness - part.decayRate * multiplier * deltaSeconds);
         if (previousFreshness > 0.0F && part.freshness == 0.0F) {
             AddLog(part.name + " has fully decayed.");
         }
@@ -825,13 +902,16 @@ void FleshgolemGame::UpdateDecay(const float deltaSeconds) {
 
 void FleshgolemGame::AdvanceToNextZone() {
     RunState& runState = registry_.get<RunState>(player_);
-    runState.zoneIndex = std::min(runState.zoneIndex + 1, runState.totalZones - 1);
+    runState.zoneIndex =
+        std::min(runState.zoneIndex + 1, runState.totalZones - 1);
     runState.zoneEncounter = 0;
-    runState.encountersPerZone = ZoneDefinitionFor(runState.zoneIndex).encounters;
+    runState.encountersPerZone =
+        ZoneDefinitionFor(runState.zoneIndex).encounters;
     runState.eliteCountdown = 3;
 
     Health& health = registry_.get<Health>(player_);
-    health.current = std::min(health.maximum, health.current + health.maximum * 0.35F);
+    health.current =
+        std::min(health.maximum, health.current + health.maximum * 0.35F);
 
     const ZoneDefinition& zone = ZoneDefinitionFor(runState.zoneIndex);
     AddLog(std::string("Advancing into ") + zone.name + ".");
@@ -846,9 +926,9 @@ void FleshgolemGame::FinishRun(const bool victory) {
 
     const Resources& resources = registry_.get<Resources>(player_);
     const RunState& runState = registry_.get<RunState>(player_);
-    const int payout =
-        std::max(2, resources.essence + resources.research * 2 + resources.kills / 2 +
-                        runState.bossesDefeated * 4 + runState.zoneIndex * 3);
+    const int payout = std::max(
+        2, resources.essence + resources.research * 2 + resources.kills / 2 +
+               runState.bossesDefeated * 4 + runState.zoneIndex * 3);
 
     lastPayout_ = payout;
     paused_ = false;
@@ -861,14 +941,15 @@ void FleshgolemGame::FinishRun(const bool victory) {
         completedRuns_++;
         sceneState_ = SceneState::Victory;
         endTitle_ = "Demo complete";
-        endSubtitle_ = "The final frame holds. Essence banked: +" + std::to_string(payout) + ".";
+        endSubtitle_ = "The final frame holds. Essence banked: +" +
+                       std::to_string(payout) + ".";
         TriggerVictoryAudio();
         AddLog("Demo victory. Primordial Essence banked.");
     } else {
         sceneState_ = SceneState::Defeat;
         endTitle_ = "Run failed";
-        endSubtitle_ = "Press E to dissolve the remains for +" + std::to_string(payout) +
-                       " Essence, or R to retry.";
+        endSubtitle_ = "Press E to dissolve the remains for +" +
+                       std::to_string(payout) + " Essence, or R to retry.";
         TriggerFailureAudio();
     }
 }
@@ -880,9 +961,10 @@ void FleshgolemGame::DissolveRun() {
 
     const Resources& resources = registry_.get<Resources>(player_);
     const RunState& runState = registry_.get<RunState>(player_);
-    const int payout = std::max(1, resources.essence + resources.kills / 2 + resources.grafts / 2 +
-                                       resources.boneMeal / 5 + resources.research +
-                                       runState.highestTier + runState.bossesDefeated * 2);
+    const int payout = std::max(
+        1, resources.essence + resources.kills / 2 + resources.grafts / 2 +
+               resources.boneMeal / 5 + resources.research +
+               runState.highestTier + runState.bossesDefeated * 2);
 
     bankedEssence_ += payout;
     completedRuns_++;

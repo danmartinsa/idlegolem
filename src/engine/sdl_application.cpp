@@ -2,14 +2,15 @@
 
 namespace engine {
 
-int RunApplication(const ApplicationConfig& config, const GameFactory& factory) {
+int RunApplication(const ApplicationConfig& config,
+                   const GameFactory& factory) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("SDL_Init failed: %s", SDL_GetError());
         return 1;
     }
 
-    SDL_Window* window =
-        SDL_CreateWindow(config.windowTitle.c_str(), config.windowWidth, config.windowHeight, 0);
+    SDL_Window* window = SDL_CreateWindow(
+        config.windowTitle.c_str(), config.windowWidth, config.windowHeight, 0);
     if (window == nullptr) {
         SDL_Log("SDL_CreateWindow failed: %s", SDL_GetError());
         SDL_Quit();
@@ -51,7 +52,8 @@ int RunApplication(const ApplicationConfig& config, const GameFactory& factory) 
         }
 
         const Uint64 currentTicks = SDL_GetTicks();
-        const float deltaSeconds = static_cast<float>(currentTicks - lastTicks) / 1000.0F;
+        const float deltaSeconds =
+            static_cast<float>(currentTicks - lastTicks) / 1000.0F;
         lastTicks = currentTicks;
 
         game->Update(deltaSeconds);

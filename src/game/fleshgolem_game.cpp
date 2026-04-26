@@ -6,8 +6,9 @@ using namespace fleshgolem_internal;
 
 namespace {
 
-bool LoadTextureAsset(SDL_Renderer* renderer, const std::string& fileName, const bool colorKey,
-                      SDL_Texture** textureTarget, std::string* pathTarget) {
+bool LoadTextureAsset(SDL_Renderer* renderer, const std::string& fileName,
+                      const bool colorKey, SDL_Texture** textureTarget,
+                      std::string* pathTarget) {
     constexpr std::array<const char*, 2> kAssetRoots{"assets/", "../assets/"};
 
     for (const char* assetRoot : kAssetRoots) {
@@ -62,14 +63,16 @@ bool FleshgolemGame::LoadAssets() {
     enemySpriteSheetPaths_.fill("");
     zoneBackdropPaths_.fill("");
 
-    const bool playerLoaded = LoadTextureAsset(renderer_, "player_walk.bmp", true,
-                                               &playerSpriteSheet_, &spriteSheetPath_);
+    const bool playerLoaded =
+        LoadTextureAsset(renderer_, "player_walk.bmp", true,
+                         &playerSpriteSheet_, &spriteSheetPath_);
     if (!playerLoaded) {
         SDL_Log("Failed to load player sprite sheet: %s", SDL_GetError());
     }
 
-    const bool titleLoaded = LoadTextureAsset(renderer_, "title_banner.bmp", false,
-                                              &titleBannerTexture_, &titleBannerPath_);
+    const bool titleLoaded =
+        LoadTextureAsset(renderer_, "title_banner.bmp", false,
+                         &titleBannerTexture_, &titleBannerPath_);
     if (!titleLoaded) {
         SDL_Log("Failed to load title banner: %s", SDL_GetError());
     }
@@ -78,23 +81,26 @@ bool FleshgolemGame::LoadAssets() {
     for (std::size_t index = 0; index < kEnemyTypeCount; ++index) {
         const EnemyKind kind = static_cast<EnemyKind>(index);
         if (!LoadTextureAsset(renderer_, EnemySpriteFileName(kind), true,
-                              &enemySpriteSheets_[index], &enemySpriteSheetPaths_[index])) {
-            SDL_Log("Failed to load enemy sprite sheet for %s: %s", EnemyTemplateFor(kind).name,
-                    SDL_GetError());
+                              &enemySpriteSheets_[index],
+                              &enemySpriteSheetPaths_[index])) {
+            SDL_Log("Failed to load enemy sprite sheet for %s: %s",
+                    EnemyTemplateFor(kind).name, SDL_GetError());
             allEnemySpritesLoaded = false;
         }
     }
 
     bool allBackdropsLoaded = true;
     for (std::size_t index = 0; index < kZoneCount; ++index) {
-        if (!LoadTextureAsset(renderer_, ZoneBackdropFileName(static_cast<int>(index)), false,
-                              &zoneBackdropTextures_[index], &zoneBackdropPaths_[index])) {
+        if (!LoadTextureAsset(
+                renderer_, ZoneBackdropFileName(static_cast<int>(index)), false,
+                &zoneBackdropTextures_[index], &zoneBackdropPaths_[index])) {
             SDL_Log("Failed to load backdrop %zu: %s", index, SDL_GetError());
             allBackdropsLoaded = false;
         }
     }
 
-    return playerLoaded && titleLoaded && allEnemySpritesLoaded && allBackdropsLoaded;
+    return playerLoaded && titleLoaded && allEnemySpritesLoaded &&
+           allBackdropsLoaded;
 }
 
 void FleshgolemGame::DestroyAssets() {
@@ -135,8 +141,8 @@ bool FleshgolemGame::InitializeAudio() {
     }
 
     const SDL_AudioSpec spec{SDL_AUDIO_F32, 2, kAudioSampleRate};
-    audioStream_ =
-        SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
+    audioStream_ = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+                                             &spec, nullptr, nullptr);
     if (audioStream_ == nullptr) {
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
         return false;
@@ -179,7 +185,8 @@ void FleshgolemGame::QueueAudio(const float deltaSeconds) {
 
     for (int frame = 0; frame < kFrames; ++frame) {
         const float time =
-            audioTime_ + static_cast<float>(frame) / static_cast<float>(kAudioSampleRate);
+            audioTime_ +
+            static_cast<float>(frame) / static_cast<float>(kAudioSampleRate);
 
         float low = 0.0F;
         float mid = 0.0F;
@@ -187,24 +194,29 @@ void FleshgolemGame::QueueAudio(const float deltaSeconds) {
 
         if (sceneState_ == SceneState::Title) {
             low += 0.08F * Oscillator(72.0F, time);
-            mid += 0.04F * Oscillator(144.0F + 14.0F * std::sin(time * 0.45F), time);
+            mid += 0.04F *
+                   Oscillator(144.0F + 14.0F * std::sin(time * 0.45F), time);
             high += 0.03F * Oscillator(216.0F, time * 0.5F);
         } else if (sceneState_ == SceneState::SkillTree) {
             low += 0.06F * Oscillator(96.0F, time);
-            mid += 0.05F * Oscillator(192.0F + 24.0F * std::sin(time * 1.1F), time);
+            mid += 0.05F *
+                   Oscillator(192.0F + 24.0F * std::sin(time * 1.1F), time);
             high += 0.03F * Oscillator(288.0F, time);
         } else if (sceneState_ == SceneState::Victory) {
             low += 0.05F * Oscillator(110.0F, time);
             mid += 0.05F * Oscillator(220.0F, time);
-            high += 0.04F * Oscillator(330.0F + 30.0F * std::sin(time * 0.8F), time);
+            high += 0.04F *
+                    Oscillator(330.0F + 30.0F * std::sin(time * 0.8F), time);
         } else if (sceneState_ == SceneState::Defeat) {
             low += 0.07F * Oscillator(58.0F, time);
             mid += 0.03F * Oscillator(92.0F, time);
         } else {
             const RunState& runState = registry_.get<RunState>(player_);
-            const float base = 78.0F + static_cast<float>(runState.zoneIndex) * 20.0F;
+            const float base =
+                78.0F + static_cast<float>(runState.zoneIndex) * 20.0F;
             low += 0.06F * Oscillator(base, time);
-            mid += 0.035F * Oscillator(base * 1.5F + 8.0F * std::sin(time * 0.5F), time);
+            mid += 0.035F *
+                   Oscillator(base * 1.5F + 8.0F * std::sin(time * 0.5F), time);
             if (combatJoined_) {
                 const float beat = std::max(0.0F, std::sin(time * 7.5F));
                 high += beat * 0.05F * Oscillator(base * 3.0F, time);
@@ -213,24 +225,29 @@ void FleshgolemGame::QueueAudio(const float deltaSeconds) {
 
         if (attackSoundTime_ > 0.0F) {
             const float envelope = attackSoundTime_;
-            high += 0.18F * envelope * Oscillator(780.0F + 120.0F * envelope, time);
+            high +=
+                0.18F * envelope * Oscillator(780.0F + 120.0F * envelope, time);
         }
         if (rewardSoundTime_ > 0.0F) {
             const float envelope = rewardSoundTime_;
-            mid += 0.22F * envelope * Oscillator(320.0F + 220.0F * (1.0F - envelope), time);
+            mid += 0.22F * envelope *
+                   Oscillator(320.0F + 220.0F * (1.0F - envelope), time);
         }
         if (failureSoundTime_ > 0.0F) {
             const float envelope = failureSoundTime_;
-            low += 0.22F * envelope * Oscillator(160.0F - 80.0F * (1.0F - envelope), time);
+            low += 0.22F * envelope *
+                   Oscillator(160.0F - 80.0F * (1.0F - envelope), time);
         }
         if (victorySoundTime_ > 0.0F) {
             const float envelope = victorySoundTime_;
-            high += 0.2F * envelope * Oscillator(420.0F + 260.0F * (1.0F - envelope), time);
+            high += 0.2F * envelope *
+                    Oscillator(420.0F + 260.0F * (1.0F - envelope), time);
         }
 
         const float left = Clamp(low + mid + high, -0.85F, 0.85F);
         const float right =
-            Clamp(low + mid * 0.9F + high * (combatJoined_ ? 0.8F : 1.0F), -0.85F, 0.85F);
+            Clamp(low + mid * 0.9F + high * (combatJoined_ ? 0.8F : 1.0F),
+                  -0.85F, 0.85F);
 
         samples[static_cast<std::size_t>(frame) * 2U] = left;
         samples[static_cast<std::size_t>(frame) * 2U + 1U] = right;
@@ -239,7 +256,8 @@ void FleshgolemGame::QueueAudio(const float deltaSeconds) {
     SDL_PutAudioStreamData(audioStream_, samples.data(),
                            static_cast<int>(samples.size() * sizeof(float)));
 
-    const float advanced = static_cast<float>(kFrames) / static_cast<float>(kAudioSampleRate);
+    const float advanced =
+        static_cast<float>(kFrames) / static_cast<float>(kAudioSampleRate);
     audioTime_ += advanced;
     attackSoundTime_ = std::max(0.0F, attackSoundTime_ - advanced * 3.4F);
     rewardSoundTime_ = std::max(0.0F, rewardSoundTime_ - advanced * 1.4F);
@@ -258,7 +276,8 @@ void FleshgolemGame::TriggerFailureAudio() { failureSoundTime_ = 1.0F; }
 void FleshgolemGame::TriggerVictoryAudio() { victorySoundTime_ = 1.0F; }
 
 void FleshgolemGame::HandleEvent(const SDL_Event& event) {
-    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT) {
+    if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+        event.button.button == SDL_BUTTON_LEFT) {
         const float mouseX = event.button.x;
         const float mouseY = event.button.y;
 
@@ -281,7 +300,8 @@ void FleshgolemGame::HandleEvent(const SDL_Event& event) {
         }
 
         if (sceneState_ == SceneState::SkillTree) {
-            for (int index = 0; index < static_cast<int>(kSkillNodeCount); ++index) {
+            for (int index = 0; index < static_cast<int>(kSkillNodeCount);
+                 ++index) {
                 if (PointInRect(SkillNodeRect(index), mouseX, mouseY)) {
                     selectedSkillIndex_ = index;
                     return;
@@ -296,10 +316,12 @@ void FleshgolemGame::HandleEvent(const SDL_Event& event) {
             return;
         }
 
-        if (sceneState_ == SceneState::Victory || sceneState_ == SceneState::Defeat) {
+        if (sceneState_ == SceneState::Victory ||
+            sceneState_ == SceneState::Defeat) {
             if (PointInRect(RunEndPrimaryButtonRect(), mouseX, mouseY)) {
                 ResetRun();
-            } else if (PointInRect(RunEndSecondaryButtonRect(), mouseX, mouseY)) {
+            } else if (PointInRect(RunEndSecondaryButtonRect(), mouseX,
+                                   mouseY)) {
                 ReturnToTitle();
             }
             return;
@@ -326,7 +348,8 @@ void FleshgolemGame::HandleEvent(const SDL_Event& event) {
             selectedSkillIndex_ = FindSkillSelection(0, -1);
         } else if (event.key.key == SDLK_DOWN) {
             selectedSkillIndex_ = FindSkillSelection(0, 1);
-        } else if (event.key.key == SDLK_RETURN || event.key.key == SDLK_SPACE) {
+        } else if (event.key.key == SDLK_RETURN ||
+                   event.key.key == SDLK_SPACE) {
             TrySpendSkillPoint(selectedSkillIndex_);
         } else if (event.key.key == SDLK_ESCAPE || event.key.key == SDLK_K ||
                    event.key.key == SDLK_TAB) {
@@ -335,12 +358,14 @@ void FleshgolemGame::HandleEvent(const SDL_Event& event) {
         return;
     }
 
-    if (sceneState_ == SceneState::Victory || sceneState_ == SceneState::Defeat) {
+    if (sceneState_ == SceneState::Victory ||
+        sceneState_ == SceneState::Defeat) {
         if (event.key.key == SDLK_RETURN || event.key.key == SDLK_R) {
             ResetRun();
         } else if (event.key.key == SDLK_ESCAPE || event.key.key == SDLK_T) {
             ReturnToTitle();
-        } else if (sceneState_ == SceneState::Defeat && event.key.key == SDLK_E) {
+        } else if (sceneState_ == SceneState::Defeat &&
+                   event.key.key == SDLK_E) {
             DissolveRun();
         }
         return;
@@ -422,7 +447,8 @@ void FleshgolemGame::Render() const {
     if (sceneState_ == SceneState::SkillTree) {
         RenderSkillTreeOverlay();
     }
-    if (sceneState_ == SceneState::Victory || sceneState_ == SceneState::Defeat) {
+    if (sceneState_ == SceneState::Victory ||
+        sceneState_ == SceneState::Defeat) {
         RenderRunEndOverlay();
     }
 }
@@ -496,10 +522,11 @@ void FleshgolemGame::UpdateWindowTitle() {
     const ZoneDefinition& zone = ZoneDefinitionFor(runState.zoneIndex);
 
     std::ostringstream title;
-    title << "idlegolem | demo | " << zone.name << " | wave " << (runState.zoneEncounter + 1) << "/"
-          << runState.encountersPerZone << " | kills " << resources.kills << " | biomass "
-          << resources.biomass << " | research " << resources.research << " | bank "
-          << bankedEssence_;
+    title << "idlegolem | demo | " << zone.name << " | wave "
+          << (runState.zoneEncounter + 1) << "/" << runState.encountersPerZone
+          << " | kills " << resources.kills << " | biomass "
+          << resources.biomass << " | research " << resources.research
+          << " | bank " << bankedEssence_;
 
     if (sceneState_ == SceneState::SkillTree) {
         title << " | skill tree";

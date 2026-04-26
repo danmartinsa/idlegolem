@@ -80,8 +80,10 @@ class FleshgolemGame : public engine::Game {
     SDL_Renderer* renderer_ = nullptr;
     SDL_Texture* playerSpriteSheet_ = nullptr;
     SDL_Texture* titleBannerTexture_ = nullptr;
-    std::array<SDL_Texture*, fleshgolem_internal::kEnemyTypeCount> enemySpriteSheets_{};
-    std::array<SDL_Texture*, fleshgolem_internal::kZoneCount> zoneBackdropTextures_{};
+    std::array<SDL_Texture*, fleshgolem_internal::kEnemyTypeCount>
+        enemySpriteSheets_{};
+    std::array<SDL_Texture*, fleshgolem_internal::kZoneCount>
+        zoneBackdropTextures_{};
     SDL_AudioStream* audioStream_ = nullptr;
 
     entt::registry registry_;
@@ -109,7 +111,8 @@ class FleshgolemGame : public engine::Game {
     bool combatJoined_ = false;
     bool paused_ = false;
 
-    fleshgolem_internal::SceneState sceneState_ = fleshgolem_internal::SceneState::Title;
+    fleshgolem_internal::SceneState sceneState_ =
+        fleshgolem_internal::SceneState::Title;
     fleshgolem_internal::RunUpgrades runUpgrades_{};
 
     std::mt19937 rng_;
@@ -117,8 +120,10 @@ class FleshgolemGame : public engine::Game {
     std::string windowTitle_;
     std::string spriteSheetPath_;
     std::string titleBannerPath_;
-    std::array<std::string, fleshgolem_internal::kEnemyTypeCount> enemySpriteSheetPaths_{};
-    std::array<std::string, fleshgolem_internal::kZoneCount> zoneBackdropPaths_{};
+    std::array<std::string, fleshgolem_internal::kEnemyTypeCount>
+        enemySpriteSheetPaths_{};
+    std::array<std::string, fleshgolem_internal::kZoneCount>
+        zoneBackdropPaths_{};
     std::string endTitle_;
     std::string endSubtitle_;
 };

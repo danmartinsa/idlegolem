@@ -267,9 +267,10 @@ struct SkillNodeDefinition {
 };
 
 constexpr std::array<SlotType, kSlotCount> kAllSlots{
-    SlotType::Head,    SlotType::Torso,    SlotType::LeftArm, SlotType::RightArm,
-    SlotType::LeftLeg, SlotType::RightLeg, SlotType::Heart,   SlotType::Lungs,
-    SlotType::Stomach, SlotType::Spine,    SlotType::Skin,    SlotType::Blood,
+    SlotType::Head,     SlotType::Torso,   SlotType::LeftArm,
+    SlotType::RightArm, SlotType::LeftLeg, SlotType::RightLeg,
+    SlotType::Heart,    SlotType::Lungs,   SlotType::Stomach,
+    SlotType::Spine,    SlotType::Skin,    SlotType::Blood,
 };
 
 constexpr std::array<ZoneDefinition, kZoneCount> kZoneDefinitions{{
@@ -314,113 +315,129 @@ constexpr std::array<ZoneDefinition, kZoneCount> kZoneDefinitions{{
     },
 }};
 
-inline const std::array<SkillNodeDefinition, kSkillNodeCount> kSkillTreeDefinitions{{
-    SkillNodeDefinition{
-        "Bone Lattice",
-        "BL",
-        "Densify the frame with better marrow braces. Each rank adds Vitality, health, and armor.",
-        SDL_Color{134, 144, 170, 255},
-        SDL_FPoint{40.0F, 54.0F},
-        3,
-        {-1, -1},
-        0,
-        SkillEffect{.attributeBonus = Attributes{0.0F, 1.2F, 0.0F, 0.0F, 0.0F, 0.0F},
-                    .healthBonus = 12.0F,
-                    .armorBonus = 0.6F},
-    },
-    SkillNodeDefinition{
-        "Sinew Knot",
-        "SK",
-        "Reinforce armature and tendon pulls. Each rank adds Might and direct attack power.",
-        SDL_Color{176, 108, 96, 255},
-        SDL_FPoint{40.0F, 182.0F},
-        3,
-        {-1, -1},
-        0,
-        SkillEffect{.attributeBonus = Attributes{1.1F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F},
-                    .attackBonus = 2.2F},
-    },
-    SkillNodeDefinition{
-        "Reflex Loop",
-        "RL",
-        "Tune the gait and snap of the body. Each rank grants Agility, speed, and evasion.",
-        SDL_Color{110, 154, 118, 255},
-        SDL_FPoint{40.0F, 310.0F},
-        3,
-        {-1, -1},
-        0,
-        SkillEffect{.attributeBonus = Attributes{0.0F, 0.0F, 0.9F, 0.0F, 0.0F, 0.0F},
-                    .attackIntervalBonus = -0.03F,
-                    .evasionBonus = 0.01F},
-    },
-    SkillNodeDefinition{
-        "Occult Matrix",
-        "OM",
-        "Open more stable neural channels. Each rank adds Reason, stability, and level-up healing.",
-        SDL_Color{116, 132, 202, 255},
-        SDL_FPoint{276.0F, 54.0F},
-        2,
-        {0, -1},
-        1,
-        SkillEffect{.attributeBonus = Attributes{0.0F, 0.0F, 0.0F, 1.1F, 0.0F, 0.0F},
-                    .stabilityCapacityBonus = 1.2F,
-                    .levelHealPercentBonus = 0.05F},
-    },
-    SkillNodeDefinition{
-        "Predator Heart",
-        "PH",
-        "Teach the chassis to hunt. Each rank adds Instinct, crit, and extra essence on kills.",
-        SDL_Color{120, 170, 112, 255},
-        SDL_FPoint{276.0F, 182.0F},
-        2,
-        {1, 2},
-        2,
-        SkillEffect{.attributeBonus = Attributes{0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F},
-                    .critChanceBonus = 0.018F,
-                    .bonusEssencePerKill = 1},
-    },
-    SkillNodeDefinition{
-        "Preservation Bath",
-        "PB",
-        "Suspend rot while the organs acclimate. Each rank slows decay and speeds harvesting.",
-        SDL_Color{96, 176, 182, 255},
-        SDL_FPoint{276.0F, 310.0F},
-        2,
-        {0, 3},
-        2,
-        SkillEffect{.healthBonus = 8.0F,
-                    .decayMultiplierBonus = -0.12F,
-                    .harvestSpeedMultiplierBonus = 0.16F},
-    },
-    SkillNodeDefinition{
-        "Grave Refinery",
-        "GR",
-        "Refine every carcass into usable stock. Each rank boosts harvest yield and elite "
-        "research.",
-        SDL_Color{192, 166, 92, 255},
-        SDL_FPoint{512.0F, 118.0F},
-        2,
-        {3, 5},
-        2,
-        SkillEffect{.harvestMultiplierBonus = 0.18F, .researchOnEliteKill = 1},
-    },
-    SkillNodeDefinition{
-        "Cathedral Frame",
-        "CF",
-        "Complete the combat chassis. Unlocking it boosts the entire body and hit output at once.",
-        SDL_Color{176, 94, 164, 255},
-        SDL_FPoint{512.0F, 246.0F},
-        1,
-        {4, 6},
-        2,
-        SkillEffect{.attributeBonus = Attributes{0.8F, 0.8F, 0.0F, 0.8F, 0.0F, 0.4F},
-                    .healthBonus = 18.0F,
-                    .attackBonus = 4.0F,
-                    .critChanceBonus = 0.02F,
-                    .stabilityCapacityBonus = 1.6F,
-                    .bonusEssencePerKill = 2},
-    },
-}};
+inline const std::array<SkillNodeDefinition, kSkillNodeCount>
+    kSkillTreeDefinitions{{
+        SkillNodeDefinition{
+            "Bone Lattice",
+            "BL",
+            "Densify the frame with better marrow braces. Each rank adds "
+            "Vitality, health, and armor.",
+            SDL_Color{134, 144, 170, 255},
+            SDL_FPoint{40.0F, 54.0F},
+            3,
+            {-1, -1},
+            0,
+            SkillEffect{.attributeBonus =
+                            Attributes{0.0F, 1.2F, 0.0F, 0.0F, 0.0F, 0.0F},
+                        .healthBonus = 12.0F,
+                        .armorBonus = 0.6F},
+        },
+        SkillNodeDefinition{
+            "Sinew Knot",
+            "SK",
+            "Reinforce armature and tendon pulls. Each rank adds Might and "
+            "direct attack power.",
+            SDL_Color{176, 108, 96, 255},
+            SDL_FPoint{40.0F, 182.0F},
+            3,
+            {-1, -1},
+            0,
+            SkillEffect{.attributeBonus =
+                            Attributes{1.1F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F},
+                        .attackBonus = 2.2F},
+        },
+        SkillNodeDefinition{
+            "Reflex Loop",
+            "RL",
+            "Tune the gait and snap of the body. Each rank grants Agility, "
+            "speed, and evasion.",
+            SDL_Color{110, 154, 118, 255},
+            SDL_FPoint{40.0F, 310.0F},
+            3,
+            {-1, -1},
+            0,
+            SkillEffect{.attributeBonus =
+                            Attributes{0.0F, 0.0F, 0.9F, 0.0F, 0.0F, 0.0F},
+                        .attackIntervalBonus = -0.03F,
+                        .evasionBonus = 0.01F},
+        },
+        SkillNodeDefinition{
+            "Occult Matrix",
+            "OM",
+            "Open more stable neural channels. Each rank adds Reason, "
+            "stability, and level-up healing.",
+            SDL_Color{116, 132, 202, 255},
+            SDL_FPoint{276.0F, 54.0F},
+            2,
+            {0, -1},
+            1,
+            SkillEffect{.attributeBonus =
+                            Attributes{0.0F, 0.0F, 0.0F, 1.1F, 0.0F, 0.0F},
+                        .stabilityCapacityBonus = 1.2F,
+                        .levelHealPercentBonus = 0.05F},
+        },
+        SkillNodeDefinition{
+            "Predator Heart",
+            "PH",
+            "Teach the chassis to hunt. Each rank adds Instinct, crit, and "
+            "extra essence on kills.",
+            SDL_Color{120, 170, 112, 255},
+            SDL_FPoint{276.0F, 182.0F},
+            2,
+            {1, 2},
+            2,
+            SkillEffect{.attributeBonus =
+                            Attributes{0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F},
+                        .critChanceBonus = 0.018F,
+                        .bonusEssencePerKill = 1},
+        },
+        SkillNodeDefinition{
+            "Preservation Bath",
+            "PB",
+            "Suspend rot while the organs acclimate. Each rank slows decay and "
+            "speeds harvesting.",
+            SDL_Color{96, 176, 182, 255},
+            SDL_FPoint{276.0F, 310.0F},
+            2,
+            {0, 3},
+            2,
+            SkillEffect{.healthBonus = 8.0F,
+                        .decayMultiplierBonus = -0.12F,
+                        .harvestSpeedMultiplierBonus = 0.16F},
+        },
+        SkillNodeDefinition{
+            "Grave Refinery",
+            "GR",
+            "Refine every carcass into usable stock. Each rank boosts harvest "
+            "yield and elite "
+            "research.",
+            SDL_Color{192, 166, 92, 255},
+            SDL_FPoint{512.0F, 118.0F},
+            2,
+            {3, 5},
+            2,
+            SkillEffect{.harvestMultiplierBonus = 0.18F,
+                        .researchOnEliteKill = 1},
+        },
+        SkillNodeDefinition{
+            "Cathedral Frame",
+            "CF",
+            "Complete the combat chassis. Unlocking it boosts the entire body "
+            "and hit output at once.",
+            SDL_Color{176, 94, 164, 255},
+            SDL_FPoint{512.0F, 246.0F},
+            1,
+            {4, 6},
+            2,
+            SkillEffect{.attributeBonus =
+                            Attributes{0.8F, 0.8F, 0.0F, 0.8F, 0.0F, 0.4F},
+                        .healthBonus = 18.0F,
+                        .attackBonus = 4.0F,
+                        .critChanceBonus = 0.02F,
+                        .stabilityCapacityBonus = 1.6F,
+                        .bonusEssencePerKill = 2},
+        },
+    }};
 
 constexpr EnemyTemplate EnemyTemplateFor(const EnemyKind kind) {
     switch (kind) {
@@ -434,7 +451,8 @@ constexpr EnemyTemplate EnemyTemplateFor(const EnemyKind kind) {
                 1.45F,
                 1.0F,
                 0.05F,
-                {SlotType::LeftArm, SlotType::RightArm, SlotType::Head, SlotType::Torso},
+                {SlotType::LeftArm, SlotType::RightArm, SlotType::Head,
+                 SlotType::Torso},
                 4,
             };
         case EnemyKind::Wolf:
@@ -447,7 +465,8 @@ constexpr EnemyTemplate EnemyTemplateFor(const EnemyKind kind) {
                 1.18F,
                 0.5F,
                 0.12F,
-                {SlotType::LeftLeg, SlotType::RightLeg, SlotType::Skin, SlotType::Head},
+                {SlotType::LeftLeg, SlotType::RightLeg, SlotType::Skin,
+                 SlotType::Head},
                 4,
             };
         case EnemyKind::Cultist:
@@ -460,7 +479,8 @@ constexpr EnemyTemplate EnemyTemplateFor(const EnemyKind kind) {
                 1.32F,
                 1.8F,
                 0.08F,
-                {SlotType::Head, SlotType::Lungs, SlotType::Blood, SlotType::Heart},
+                {SlotType::Head, SlotType::Lungs, SlotType::Blood,
+                 SlotType::Heart},
                 4,
             };
         case EnemyKind::FailedHomunculus:
@@ -473,7 +493,8 @@ constexpr EnemyTemplate EnemyTemplateFor(const EnemyKind kind) {
                 1.36F,
                 2.8F,
                 0.04F,
-                {SlotType::Heart, SlotType::Spine, SlotType::Torso, SlotType::LeftArm},
+                {SlotType::Heart, SlotType::Spine, SlotType::Torso,
+                 SlotType::LeftArm},
                 4,
             };
     }
@@ -482,18 +503,23 @@ constexpr EnemyTemplate EnemyTemplateFor(const EnemyKind kind) {
 }
 
 inline const ZoneDefinition& ZoneDefinitionFor(const int zoneIndex) {
-    return kZoneDefinitions[std::clamp(zoneIndex, 0, static_cast<int>(kZoneCount) - 1)];
+    return kZoneDefinitions[std::clamp(zoneIndex, 0,
+                                       static_cast<int>(kZoneCount) - 1)];
 }
 
 inline const SkillNodeDefinition& SkillDefinition(const int skillIndex) {
-    return kSkillTreeDefinitions[std::clamp(skillIndex, 0, static_cast<int>(kSkillNodeCount) - 1)];
+    return kSkillTreeDefinitions[std::clamp(
+        skillIndex, 0, static_cast<int>(kSkillNodeCount) - 1)];
 }
 
-inline bool SkillPrerequisitesMet(const SkillNodeDefinition& definition,
-                                  const std::array<int, kSkillNodeCount>& ranks) {
+inline bool SkillPrerequisitesMet(
+    const SkillNodeDefinition& definition,
+    const std::array<int, kSkillNodeCount>& ranks) {
     for (int index = 0; index < definition.prerequisiteCount; ++index) {
-        const int prerequisite = definition.prerequisites[static_cast<std::size_t>(index)];
-        if (prerequisite < 0 || prerequisite >= static_cast<int>(kSkillNodeCount)) {
+        const int prerequisite =
+            definition.prerequisites[static_cast<std::size_t>(index)];
+        if (prerequisite < 0 ||
+            prerequisite >= static_cast<int>(kSkillNodeCount)) {
             return false;
         }
         if (ranks[static_cast<std::size_t>(prerequisite)] <= 0) {
@@ -533,7 +559,9 @@ inline const char* ZoneBackdropFileName(const int zoneIndex) {
     }
 }
 
-constexpr std::size_t SlotIndex(const SlotType slot) { return static_cast<std::size_t>(slot); }
+constexpr std::size_t SlotIndex(const SlotType slot) {
+    return static_cast<std::size_t>(slot);
+}
 
 constexpr const char* SlotLabel(const SlotType slot) {
     switch (slot) {
@@ -635,16 +663,19 @@ constexpr SDL_Color RarityColor(const int rarity) {
     }
 }
 
-inline float Clamp(const float value, const float minValue, const float maxValue) {
+inline float Clamp(const float value, const float minValue,
+                   const float maxValue) {
     return std::clamp(value, minValue, maxValue);
 }
 
-inline float RandomFloat(std::mt19937& rng, const float minValue, const float maxValue) {
+inline float RandomFloat(std::mt19937& rng, const float minValue,
+                         const float maxValue) {
     std::uniform_real_distribution<float> distribution(minValue, maxValue);
     return distribution(rng);
 }
 
-inline int RandomInt(std::mt19937& rng, const int minValue, const int maxValue) {
+inline int RandomInt(std::mt19937& rng, const int minValue,
+                     const int maxValue) {
     std::uniform_int_distribution<int> distribution(minValue, maxValue);
     return distribution(rng);
 }
@@ -653,24 +684,27 @@ inline void SetDrawColor(SDL_Renderer* renderer, const SDL_Color color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 }
 
-inline void FillRect(SDL_Renderer* renderer, const SDL_FRect& rect, const SDL_Color color) {
+inline void FillRect(SDL_Renderer* renderer, const SDL_FRect& rect,
+                     const SDL_Color color) {
     SetDrawColor(renderer, color);
     SDL_RenderFillRect(renderer, &rect);
 }
 
-inline void DrawRect(SDL_Renderer* renderer, const SDL_FRect& rect, const SDL_Color color) {
+inline void DrawRect(SDL_Renderer* renderer, const SDL_FRect& rect,
+                     const SDL_Color color) {
     SetDrawColor(renderer, color);
     SDL_RenderRect(renderer, &rect);
 }
 
-inline void DrawText(SDL_Renderer* renderer, const float x, const float y, const SDL_Color color,
-                     const std::string_view text) {
+inline void DrawText(SDL_Renderer* renderer, const float x, const float y,
+                     const SDL_Color color, const std::string_view text) {
     SetDrawColor(renderer, color);
     SDL_RenderDebugText(renderer, x, y, std::string(text).c_str());
 }
 
-inline void DrawBar(SDL_Renderer* renderer, const SDL_FRect& rect, const float ratio,
-                    const SDL_Color fillColor, const SDL_Color backgroundColor) {
+inline void DrawBar(SDL_Renderer* renderer, const SDL_FRect& rect,
+                    const float ratio, const SDL_Color fillColor,
+                    const SDL_Color backgroundColor) {
     FillRect(renderer, rect, backgroundColor);
 
     SDL_FRect fillRect = rect;
@@ -687,12 +721,14 @@ inline std::string FormatNumber(const float value, const int precision = 1) {
     return stream.str();
 }
 
-inline std::string FitTextToWidth(const std::string_view text, const float maxWidth) {
+inline std::string FitTextToWidth(const std::string_view text,
+                                  const float maxWidth) {
     if (maxWidth <= 0.0F) {
         return "";
     }
 
-    const int maxChars = std::max(1, static_cast<int>(std::floor(maxWidth / 8.0F)));
+    const int maxChars =
+        std::max(1, static_cast<int>(std::floor(maxWidth / 8.0F)));
     if (static_cast<int>(text.size()) <= maxChars) {
         return std::string(text);
     }
@@ -701,26 +737,31 @@ inline std::string FitTextToWidth(const std::string_view text, const float maxWi
         return std::string(static_cast<std::size_t>(maxChars), '.');
     }
 
-    return std::string(text.substr(0, static_cast<std::size_t>(maxChars - 3))) + "...";
+    return std::string(text.substr(0, static_cast<std::size_t>(maxChars - 3))) +
+           "...";
 }
 
-inline std::vector<std::string> WrapTextToWidth(const std::string_view text, const float maxWidth,
+inline std::vector<std::string> WrapTextToWidth(const std::string_view text,
+                                                const float maxWidth,
                                                 const int maxLines = -1) {
     std::vector<std::string> lines;
     if (text.empty() || maxWidth <= 0.0F) {
         return lines;
     }
 
-    const int maxChars = std::max(1, static_cast<int>(std::floor(maxWidth / 8.0F)));
+    const int maxChars =
+        std::max(1, static_cast<int>(std::floor(maxWidth / 8.0F)));
     std::string remaining(text);
 
-    while (!remaining.empty() && (maxLines < 0 || static_cast<int>(lines.size()) < maxLines)) {
+    while (!remaining.empty() &&
+           (maxLines < 0 || static_cast<int>(lines.size()) < maxLines)) {
         if (static_cast<int>(remaining.size()) <= maxChars) {
             lines.push_back(remaining);
             break;
         }
 
-        std::size_t breakPos = remaining.rfind(' ', static_cast<std::size_t>(maxChars));
+        std::size_t breakPos =
+            remaining.rfind(' ', static_cast<std::size_t>(maxChars));
         if (breakPos == std::string::npos || breakPos == 0) {
             breakPos = static_cast<std::size_t>(maxChars);
         }
@@ -737,21 +778,25 @@ inline std::vector<std::string> WrapTextToWidth(const std::string_view text, con
         }
     }
 
-    if (!remaining.empty() && maxLines > 0 && static_cast<int>(lines.size()) == maxLines) {
+    if (!remaining.empty() && maxLines > 0 &&
+        static_cast<int>(lines.size()) == maxLines) {
         lines.back() = FitTextToWidth(lines.back() + " " + remaining, maxWidth);
     }
 
     return lines;
 }
 
-inline void DrawTextFit(SDL_Renderer* renderer, const float x, const float y, const float maxWidth,
-                        const SDL_Color color, const std::string_view text) {
+inline void DrawTextFit(SDL_Renderer* renderer, const float x, const float y,
+                        const float maxWidth, const SDL_Color color,
+                        const std::string_view text) {
     DrawText(renderer, x, y, color, FitTextToWidth(text, maxWidth));
 }
 
-inline void DrawWrappedText(SDL_Renderer* renderer, const float x, const float y,
-                            const float maxWidth, const int maxLines, const float lineHeight,
-                            const SDL_Color color, const std::string_view text) {
+inline void DrawWrappedText(SDL_Renderer* renderer, const float x,
+                            const float y, const float maxWidth,
+                            const int maxLines, const float lineHeight,
+                            const SDL_Color color,
+                            const std::string_view text) {
     const auto lines = WrapTextToWidth(text, maxWidth, maxLines);
     float lineY = y;
     for (const std::string& line : lines) {
@@ -781,7 +826,8 @@ inline std::string BuildPartName(const EnemyKind source, const SlotType slot) {
     return stream.str();
 }
 
-inline std::array<SDL_FRect, kSlotCount> BuildSlotRects(const SDL_FRect& panel) {
+inline std::array<SDL_FRect, kSlotCount> BuildSlotRects(
+    const SDL_FRect& panel) {
     const float left = panel.x + 26.0F;
     const float top = panel.y + 156.0F;
     const float unit = 54.0F;
@@ -793,16 +839,23 @@ inline std::array<SDL_FRect, kSlotCount> BuildSlotRects(const SDL_FRect& panel) 
         SDL_FRect{left + unit * 3.3F, top + unit * 1.2F, unit, unit},
         SDL_FRect{left + unit * 1.5F, top + unit * 2.55F, unit, unit * 1.2F},
         SDL_FRect{left + unit * 2.5F, top + unit * 2.55F, unit, unit * 1.2F},
-        SDL_FRect{left + unit * 1.1F, top + unit * 1.7F, unit * 0.75F, unit * 0.75F},
-        SDL_FRect{left + unit * 2.9F, top + unit * 1.7F, unit * 0.75F, unit * 0.75F},
+        SDL_FRect{left + unit * 1.1F, top + unit * 1.7F, unit * 0.75F,
+                  unit * 0.75F},
+        SDL_FRect{left + unit * 2.9F, top + unit * 1.7F, unit * 0.75F,
+                  unit * 0.75F},
         SDL_FRect{left + unit * 2.0F, top + unit * 2.15F, unit, unit * 0.8F},
-        SDL_FRect{left + unit * 2.0F, top + unit * 1.2F, unit * 0.3F, unit * 2.35F},
-        SDL_FRect{left + unit * 0.9F, top + unit * 1.05F, unit * 2.8F, unit * 1.55F},
-        SDL_FRect{left + unit * 1.0F, top + unit * 3.9F, unit * 3.0F, unit * 0.45F},
+        SDL_FRect{left + unit * 2.0F, top + unit * 1.2F, unit * 0.3F,
+                  unit * 2.35F},
+        SDL_FRect{left + unit * 0.9F, top + unit * 1.05F, unit * 2.8F,
+                  unit * 1.55F},
+        SDL_FRect{left + unit * 1.0F, top + unit * 3.9F, unit * 3.0F,
+                  unit * 0.45F},
     };
 }
 
-inline SDL_FRect PauseModalRect() { return SDL_FRect{440.0F, 210.0F, 400.0F, 250.0F}; }
+inline SDL_FRect PauseModalRect() {
+    return SDL_FRect{440.0F, 210.0F, 400.0F, 250.0F};
+}
 
 inline SDL_FRect ResumeButtonRect() {
     const SDL_FRect modal = PauseModalRect();
@@ -814,9 +867,13 @@ inline SDL_FRect RestartButtonRect() {
     return SDL_FRect{modal.x + 70.0F, modal.y + 190.0F, 260.0F, 40.0F};
 }
 
-inline SDL_FRect TitleStartButtonRect() { return SDL_FRect{470.0F, 526.0F, 340.0F, 48.0F}; }
+inline SDL_FRect TitleStartButtonRect() {
+    return SDL_FRect{470.0F, 526.0F, 340.0F, 48.0F};
+}
 
-inline SDL_FRect SkillTreeModalRect() { return SDL_FRect{110.0F, 74.0F, 1060.0F, 572.0F}; }
+inline SDL_FRect SkillTreeModalRect() {
+    return SDL_FRect{110.0F, 74.0F, 1060.0F, 572.0F};
+}
 
 inline SDL_FRect SkillTreeGraphRect() {
     const SDL_FRect modal = SkillTreeModalRect();
@@ -831,8 +888,8 @@ inline SDL_FRect SkillTreeDetailsRect() {
 inline SDL_FRect SkillNodeRect(const int index) {
     const SDL_FRect graph = SkillTreeGraphRect();
     const SkillNodeDefinition& definition = SkillDefinition(index);
-    return SDL_FRect{graph.x + definition.position.x, graph.y + definition.position.y, 186.0F,
-                     84.0F};
+    return SDL_FRect{graph.x + definition.position.x,
+                     graph.y + definition.position.y, 186.0F, 84.0F};
 }
 
 inline SDL_FPoint SkillNodeCenter(const int index) {
@@ -842,28 +899,37 @@ inline SDL_FPoint SkillNodeCenter(const int index) {
 
 inline SDL_FRect SkillSpendButtonRect() {
     const SDL_FRect details = SkillTreeDetailsRect();
-    return SDL_FRect{details.x + 18.0F, details.y + details.h - 102.0F, details.w - 36.0F, 40.0F};
+    return SDL_FRect{details.x + 18.0F, details.y + details.h - 102.0F,
+                     details.w - 36.0F, 40.0F};
 }
 
 inline SDL_FRect SkillCloseButtonRect() {
     const SDL_FRect details = SkillTreeDetailsRect();
-    return SDL_FRect{details.x + 18.0F, details.y + details.h - 52.0F, details.w - 36.0F, 36.0F};
+    return SDL_FRect{details.x + 18.0F, details.y + details.h - 52.0F,
+                     details.w - 36.0F, 36.0F};
 }
 
-inline SDL_FRect RunEndPrimaryButtonRect() { return SDL_FRect{438.0F, 426.0F, 404.0F, 44.0F}; }
+inline SDL_FRect RunEndPrimaryButtonRect() {
+    return SDL_FRect{438.0F, 426.0F, 404.0F, 44.0F};
+}
 
-inline SDL_FRect RunEndSecondaryButtonRect() { return SDL_FRect{438.0F, 482.0F, 404.0F, 44.0F}; }
+inline SDL_FRect RunEndSecondaryButtonRect() {
+    return SDL_FRect{438.0F, 482.0F, 404.0F, 44.0F};
+}
 
 inline bool PointInRect(const SDL_FRect& rect, const float x, const float y) {
-    return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+    return x >= rect.x && x <= rect.x + rect.w && y >= rect.y &&
+           y <= rect.y + rect.h;
 }
 
 inline SDL_FRect InsetRect(const SDL_FRect& rect, const float inset) {
-    return SDL_FRect{rect.x + inset, rect.y + inset, rect.w - inset * 2.0F, rect.h - inset * 2.0F};
+    return SDL_FRect{rect.x + inset, rect.y + inset, rect.w - inset * 2.0F,
+                     rect.h - inset * 2.0F};
 }
 
 inline void DrawPanelChrome(SDL_Renderer* renderer, const SDL_FRect& rect,
-                            const SDL_Color fillColor, const SDL_Color borderColor,
+                            const SDL_Color fillColor,
+                            const SDL_Color borderColor,
                             const SDL_Color accentColor) {
     FillRect(renderer, SDL_FRect{rect.x + 4.0F, rect.y + 6.0F, rect.w, rect.h},
              SDL_Color{0, 0, 0, 74});
@@ -874,82 +940,95 @@ inline void DrawPanelChrome(SDL_Renderer* renderer, const SDL_FRect& rect,
 }
 
 inline void DrawButtonChrome(SDL_Renderer* renderer, const SDL_FRect& rect,
-                             const SDL_Color fillColor, const SDL_Color borderColor,
-                             const SDL_Color accentColor, const std::string_view label,
+                             const SDL_Color fillColor,
+                             const SDL_Color borderColor,
+                             const SDL_Color accentColor,
+                             const std::string_view label,
                              const bool selected = false) {
     FillRect(renderer, SDL_FRect{rect.x + 4.0F, rect.y + 5.0F, rect.w, rect.h},
              SDL_Color{0, 0, 0, 86});
     FillRect(renderer, rect, fillColor);
     FillRect(renderer, SDL_FRect{rect.x, rect.y, rect.w, 5.0F}, accentColor);
-    DrawRect(renderer, rect, selected ? SDL_Color{248, 244, 232, 255} : borderColor);
-    DrawTextFit(renderer, rect.x + 16.0F, rect.y + rect.h * 0.5F - 5.0F, rect.w - 32.0F,
-                SDL_Color{18, 18, 18, 255}, label);
+    DrawRect(renderer, rect,
+             selected ? SDL_Color{248, 244, 232, 255} : borderColor);
+    DrawTextFit(renderer, rect.x + 16.0F, rect.y + rect.h * 0.5F - 5.0F,
+                rect.w - 32.0F, SDL_Color{18, 18, 18, 255}, label);
 }
 
-inline void DrawTag(SDL_Renderer* renderer, const SDL_FRect& rect, const SDL_Color fillColor,
-                    const SDL_Color borderColor, const std::string_view label,
+inline void DrawTag(SDL_Renderer* renderer, const SDL_FRect& rect,
+                    const SDL_Color fillColor, const SDL_Color borderColor,
+                    const std::string_view label,
                     const SDL_Color textColor = SDL_Color{18, 18, 18, 255}) {
     FillRect(renderer, rect, fillColor);
     DrawRect(renderer, rect, borderColor);
-    DrawTextFit(renderer, rect.x + 8.0F, rect.y + rect.h * 0.5F - 5.0F, rect.w - 16.0F, textColor,
-                label);
+    DrawTextFit(renderer, rect.x + 8.0F, rect.y + rect.h * 0.5F - 5.0F,
+                rect.w - 16.0F, textColor, label);
 }
 
-inline void RenderEnemyFigure(SDL_Renderer* renderer, const SDL_FRect& rect, const SDL_Color color,
-                              const bool elite) {
+inline void RenderEnemyFigure(SDL_Renderer* renderer, const SDL_FRect& rect,
+                              const SDL_Color color, const bool elite) {
     const SDL_Color dark{static_cast<Uint8>(std::max(0, color.r - 50)),
                          static_cast<Uint8>(std::max(0, color.g - 42)),
                          static_cast<Uint8>(std::max(0, color.b - 42)), 255};
 
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.34F, rect.y + rect.h * 0.12F, rect.w * 0.32F, rect.h * 0.22F},
-        color);
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.28F, rect.y + rect.h * 0.34F, rect.w * 0.44F, rect.h * 0.34F},
-        dark);
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.2F, rect.y + rect.h * 0.42F, rect.w * 0.14F, rect.h * 0.24F},
-        color);
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.66F, rect.y + rect.h * 0.42F, rect.w * 0.14F, rect.h * 0.24F},
-        color);
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.34F, rect.y + rect.h * 0.68F, rect.w * 0.12F, rect.h * 0.22F},
-        color);
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.54F, rect.y + rect.h * 0.68F, rect.w * 0.12F, rect.h * 0.22F},
-        color);
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.43F, rect.y + rect.h * 0.2F, rect.w * 0.05F, rect.h * 0.04F},
-        SDL_Color{92, 212, 114, 255});
-    FillRect(
-        renderer,
-        SDL_FRect{rect.x + rect.w * 0.53F, rect.y + rect.h * 0.2F, rect.w * 0.05F, rect.h * 0.04F},
-        SDL_Color{92, 212, 114, 255});
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.34F, rect.y + rect.h * 0.12F,
+                       rect.w * 0.32F, rect.h * 0.22F},
+             color);
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.28F, rect.y + rect.h * 0.34F,
+                       rect.w * 0.44F, rect.h * 0.34F},
+             dark);
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.2F, rect.y + rect.h * 0.42F,
+                       rect.w * 0.14F, rect.h * 0.24F},
+             color);
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.66F, rect.y + rect.h * 0.42F,
+                       rect.w * 0.14F, rect.h * 0.24F},
+             color);
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.34F, rect.y + rect.h * 0.68F,
+                       rect.w * 0.12F, rect.h * 0.22F},
+             color);
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.54F, rect.y + rect.h * 0.68F,
+                       rect.w * 0.12F, rect.h * 0.22F},
+             color);
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.43F, rect.y + rect.h * 0.2F,
+                       rect.w * 0.05F, rect.h * 0.04F},
+             SDL_Color{92, 212, 114, 255});
+    FillRect(renderer,
+             SDL_FRect{rect.x + rect.w * 0.53F, rect.y + rect.h * 0.2F,
+                       rect.w * 0.05F, rect.h * 0.04F},
+             SDL_Color{92, 212, 114, 255});
 
     if (elite) {
-        DrawRect(renderer, SDL_FRect{rect.x + 8.0F, rect.y + 8.0F, rect.w - 16.0F, rect.h - 16.0F},
+        DrawRect(renderer,
+                 SDL_FRect{rect.x + 8.0F, rect.y + 8.0F, rect.w - 16.0F,
+                           rect.h - 16.0F},
                  SDL_Color{226, 194, 88, 255});
     }
 }
 
-inline void RenderCorpsePile(SDL_Renderer* renderer, const SDL_FRect& rect, const SDL_Color color) {
-    FillRect(renderer, SDL_FRect{rect.x + 10.0F, rect.y + 18.0F, rect.w - 20.0F, rect.h - 18.0F},
+inline void RenderCorpsePile(SDL_Renderer* renderer, const SDL_FRect& rect,
+                             const SDL_Color color) {
+    FillRect(renderer,
+             SDL_FRect{rect.x + 10.0F, rect.y + 18.0F, rect.w - 20.0F,
+                       rect.h - 18.0F},
              SDL_Color{static_cast<Uint8>(std::max(0, color.r - 35)),
                        static_cast<Uint8>(std::max(0, color.g - 28)),
                        static_cast<Uint8>(std::max(0, color.b - 30)), 255});
-    FillRect(renderer, SDL_FRect{rect.x + 18.0F, rect.y + 10.0F, rect.w * 0.36F, rect.h * 0.28F},
+    FillRect(renderer,
+             SDL_FRect{rect.x + 18.0F, rect.y + 10.0F, rect.w * 0.36F,
+                       rect.h * 0.28F},
              color);
     FillRect(renderer,
-             SDL_FRect{rect.x + rect.w * 0.5F, rect.y + 6.0F, rect.w * 0.24F, rect.h * 0.25F},
-             SDL_Color{color.r, static_cast<Uint8>(std::max(0, color.g - 10)), color.b, 255});
+             SDL_FRect{rect.x + rect.w * 0.5F, rect.y + 6.0F, rect.w * 0.24F,
+                       rect.h * 0.25F},
+             SDL_Color{color.r, static_cast<Uint8>(std::max(0, color.g - 10)),
+                       color.b, 255});
     DrawRect(renderer, rect, SDL_Color{210, 208, 204, 255});
 }
 

@@ -17,6 +17,7 @@ int main(int, char**) {
         .windowTitle = kWindowTitle,
     };
 
-    return engine::RunApplication(
-        config, [](SDL_Renderer* renderer) { return std::make_unique<FleshgolemGame>(renderer); });
+    return engine::RunApplication(config, [](SDL_Renderer* renderer) {
+        return std::make_unique<FleshgolemGame>(renderer);
+    });
 }

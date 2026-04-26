@@ -16,7 +16,8 @@ struct ApplicationConfig {
     std::string windowTitle;
 };
 
-using GameFactory = std::function<std::unique_ptr<Game>(SDL_Renderer* renderer)>;
+using GameFactory =
+    std::function<std::unique_ptr<Game>(SDL_Renderer* renderer)>;
 
 int RunApplication(const ApplicationConfig& config, const GameFactory& factory);
 
