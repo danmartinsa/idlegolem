@@ -55,14 +55,20 @@ if(NOT EnTT_FOUND)
   FetchContent_Declare(
         EnTT
         GIT_REPOSITORY https://github.com/skypjack/entt.git
-        GIT_TAG v3.13.2
+        GIT_TAG v3.16.0
         GIT_SHALLOW TRUE
     )
 
   FetchContent_MakeAvailable(EnTT)
 endif()
 
-add_executable(idlegolem src/main.cpp src/prototype_game.cpp)
+add_executable(
+    idlegolem
+    src/main.cpp
+    src/prototype_game.cpp
+    src/prototype_game_gameplay.cpp
+    src/prototype_game_render.cpp
+)
 
 target_link_libraries(idlegolem PRIVATE EnTT::EnTT SDL3::SDL3)
 

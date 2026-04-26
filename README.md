@@ -1,50 +1,46 @@
 # idlegolem
 
-**idlegolem** is a C++20 prototype for **Fleshgolem**, a dark-fantasy incremental idle RPG about building a stronger body from scavenged enemy parts. The current project is an SDL3 + EnTT vertical slice focused on the core loop: auto-combat, harvesting remains, grafting upgrades, part decay, stability pressure, and dissolving runs into long-term essence.
+**idlegolem** is a C++20 SDL3 + EnTT demo for **Fleshgolem**, a dark-fantasy idle RPG about
+building a stronger body from scavenged enemy parts.
 
-## Current prototype
+The project has moved past the original prototype into a **gameplay-first demo** with:
 
-The playable prototype includes:
-
-- a single-window SDL3 presentation layer with a side-view encounter lane
-- a generated player walk sprite sheet loaded directly by SDL3
-- an EnTT-driven gameplay loop
-- a homunculus with modular body slots
-- enemies that enter from the right side of the screen and start combat on contact
-- corpse harvesting for Biomass, Bone Meal, Essence, and body-part loot
-- automatic grafting of stronger parts and salvaging of weaker ones
-- part freshness/decay and stability overload
-- run resets and dissolve-based meta progression
+- a title screen and run-to-run flow
+- three themed zones with unique backdrops
+- multiple enemy waves, elites, and bosses
+- auto-combat, harvesting, decay, and body-part grafting
+- explicit reward drafts with run upgrades
+- dissolve-based meta progression through banked Essence
+- generated BMP art assets and synthesized SDL audio
 
 ## Repository layout
 
-- `src/` - application entry point and gameplay prototype code
-- `assets/` - sprite and other runtime assets used by the prototype
+- `src/` - application code, gameplay systems, and rendering
+- `assets/` - generated sprite sheets, title art, and zone backdrops
 - `design_document/GDD.md` - game design reference
 - `design_document/ECS.md` - ECS architecture reference
-- `CMakeLists.txt` - build configuration, SDL3/EnTT dependency setup
+- `CMakeLists.txt` - build configuration and dependency setup
 
 ## Dependencies
 
-The project uses:
+The demo uses:
 
 - **SDL3**
 - **EnTT**
 - **CMake 3.24+**
 - a **C++20** compiler
 
-The build prefers installed SDL3/EnTT packages when available. If they are not installed, CMake fetches them automatically.
+The build prefers installed SDL3/EnTT packages when available. If they are not installed, CMake
+fetches them automatically.
 
 ## Build
-
-Configure and build:
 
 ```bash
 cmake -S . -B build
 cmake --build build
 ```
 
-If you want to force the project to fetch dependencies instead of using system packages:
+To force dependency fetching instead of using system packages:
 
 ```bash
 cmake -S . -B build -DIDLEGOLEM_USE_SYSTEM_SDL3=OFF -DIDLEGOLEM_USE_SYSTEM_ENTT=OFF
@@ -53,26 +49,30 @@ cmake --build build
 
 ## Run
 
-After building, start the prototype with:
-
 ```bash
 ./build/idlegolem
 ```
 
-## Prototype controls
+## Controls
 
-- `Space` - pause or resume simulation
+- `Enter` / `Space` on the title screen - start a run
+- `Space` during a run - pause or resume
 - `R` - restart the current run
-- `E` - dissolve the run into banked essence
+- `E` - dissolve the current or failed run into banked Essence
 - `N` - force the next encounter sooner
+- `1`, `2`, `3` - choose a reward draft option
+- `Left` / `Right` + `Enter` - alternate reward selection controls
+- mouse clicks - title, pause, reward, and end-screen buttons
+
+## Demo loop
+
+1. Start in the title screen and begin a fresh homunculus run.
+2. Push through zone waves as enemies approach from the right and auto-combat starts on contact.
+3. Harvest corpses for resources and body parts, then auto-graft stronger anatomy.
+4. Defeat elites and bosses to open reward drafts that shape the rest of the run.
+5. Clear the three demo zones or dissolve early to bank Essence for stronger future starts.
 
 ## Editor support
 
-The project exports `compile_commands.json` and links it into the repository root so editors such as `clangd` can resolve SDL3 and EnTT includes after configuring the build once.
-
-## Design references
-
-The implementation is guided by the documents in `design_document/`:
-
-- `GDD.md` defines the game vision, systems, terminology, and prototype direction
-- `ECS.md` defines the intended entity/component/system structure for the codebase
+The project exports `compile_commands.json` and links it into the repository root so editors such
+as `clangd` can resolve SDL3 and EnTT includes after configuring the build once.
