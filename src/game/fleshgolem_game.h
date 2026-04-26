@@ -8,21 +8,22 @@
 #include <random>
 #include <string>
 
-#include "prototype_game_internal.h"
+#include "engine/game.h"
+#include "game/fleshgolem_internal.h"
 
-class PrototypeGame {
+class FleshgolemGame : public engine::Game {
    public:
-    explicit PrototypeGame(SDL_Renderer* renderer);
-    ~PrototypeGame();
+    explicit FleshgolemGame(SDL_Renderer* renderer);
+    ~FleshgolemGame();
 
-    PrototypeGame(const PrototypeGame&) = delete;
-    PrototypeGame& operator=(const PrototypeGame&) = delete;
+    FleshgolemGame(const FleshgolemGame&) = delete;
+    FleshgolemGame& operator=(const FleshgolemGame&) = delete;
 
-    void HandleEvent(const SDL_Event& event);
-    void Update(float deltaSeconds);
-    void Render() const;
+    void HandleEvent(const SDL_Event& event) override;
+    void Update(float deltaSeconds) override;
+    void Render() const override;
 
-    [[nodiscard]] const std::string& WindowTitle() const;
+    [[nodiscard]] const std::string& WindowTitle() const override;
 
    private:
     bool LoadAssets();
@@ -37,8 +38,13 @@ class PrototypeGame {
 
     void ResetRun();
     void AdvanceToNextZone();
-    void OpenRewardDraft(bool majorReward, bool zoneClearReward);
-    void ApplyRewardChoice(int index);
+    void OpenSkillTree();
+    void CloseSkillTree();
+    void AwardExperience(int amount);
+    bool TrySpendSkillPoint(int skillIndex);
+    void RebuildRunUpgradesFromSkills();
+    [[nodiscard]] int FindFirstSpendableSkill() const;
+    [[nodiscard]] int FindSkillSelection(int directionX, int directionY) const;
     void FinishRun(bool victory);
     void ReturnToTitle();
 
@@ -68,14 +74,14 @@ class PrototypeGame {
     void RenderLane(const SDL_FRect& laneRect) const;
     void RenderEventLog(const SDL_FRect& panel) const;
     void RenderPauseOverlay() const;
-    void RenderRewardOverlay() const;
+    void RenderSkillTreeOverlay() const;
     void RenderRunEndOverlay() const;
 
     SDL_Renderer* renderer_ = nullptr;
     SDL_Texture* playerSpriteSheet_ = nullptr;
     SDL_Texture* titleBannerTexture_ = nullptr;
-    std::array<SDL_Texture*, prototype_game_internal::kEnemyTypeCount> enemySpriteSheets_{};
-    std::array<SDL_Texture*, prototype_game_internal::kZoneCount> zoneBackdropTextures_{};
+    std::array<SDL_Texture*, fleshgolem_internal::kEnemyTypeCount> enemySpriteSheets_{};
+    std::array<SDL_Texture*, fleshgolem_internal::kZoneCount> zoneBackdropTextures_{};
     SDL_AudioStream* audioStream_ = nullptr;
 
     entt::registry registry_;
@@ -98,27 +104,21 @@ class PrototypeGame {
     int bankedEssence_ = 0;
     int completedRuns_ = 0;
     int lastPayout_ = 0;
-    int rewardSelectionIndex_ = 0;
+    int selectedSkillIndex_ = 0;
 
     bool combatJoined_ = false;
     bool paused_ = false;
-    bool pendingZoneAdvance_ = false;
-    bool pendingVictory_ = false;
 
-    prototype_game_internal::SceneState sceneState_ = prototype_game_internal::SceneState::Title;
-    prototype_game_internal::RunUpgrades runUpgrades_{};
-    std::array<prototype_game_internal::RewardOption, prototype_game_internal::kRewardChoiceCount>
-        rewardOptions_{};
+    fleshgolem_internal::SceneState sceneState_ = fleshgolem_internal::SceneState::Title;
+    fleshgolem_internal::RunUpgrades runUpgrades_{};
 
     std::mt19937 rng_;
     std::deque<std::string> eventLog_;
     std::string windowTitle_;
     std::string spriteSheetPath_;
     std::string titleBannerPath_;
-    std::array<std::string, prototype_game_internal::kEnemyTypeCount> enemySpriteSheetPaths_{};
-    std::array<std::string, prototype_game_internal::kZoneCount> zoneBackdropPaths_{};
-    std::string rewardDraftTitle_;
-    std::string rewardDraftSubtitle_;
+    std::array<std::string, fleshgolem_internal::kEnemyTypeCount> enemySpriteSheetPaths_{};
+    std::array<std::string, fleshgolem_internal::kZoneCount> zoneBackdropPaths_{};
     std::string endTitle_;
     std::string endSubtitle_;
 };

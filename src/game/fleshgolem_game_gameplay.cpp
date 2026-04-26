@@ -1,23 +1,10 @@
 #include <algorithm>
-#include <numeric>
-#include <vector>
 
-#include "prototype_game.h"
+#include "fleshgolem_game.h"
 
-using namespace prototype_game_internal;
+using namespace fleshgolem_internal;
 
 namespace {
-
-Attributes ScaleAttributes(const Attributes& source, const float factor) {
-    Attributes scaled = source;
-    scaled.might *= factor;
-    scaled.vitality *= factor;
-    scaled.agility *= factor;
-    scaled.reason *= factor;
-    scaled.instinct *= factor;
-    scaled.corruption *= factor;
-    return scaled;
-}
 
 void AddAttributes(Attributes* target, const Attributes& delta) {
     target->might += delta.might;
@@ -28,9 +15,26 @@ void AddAttributes(Attributes* target, const Attributes& delta) {
     target->corruption += delta.corruption;
 }
 
+void AddSkillEffect(RunUpgrades* target, const SkillEffect& effect) {
+    AddAttributes(&target->attributeBonus, effect.attributeBonus);
+    target->healthBonus += effect.healthBonus;
+    target->attackBonus += effect.attackBonus;
+    target->attackIntervalBonus += effect.attackIntervalBonus;
+    target->critChanceBonus += effect.critChanceBonus;
+    target->armorBonus += effect.armorBonus;
+    target->evasionBonus += effect.evasionBonus;
+    target->stabilityCapacityBonus += effect.stabilityCapacityBonus;
+    target->decayMultiplier += effect.decayMultiplierBonus;
+    target->harvestMultiplier += effect.harvestMultiplierBonus;
+    target->harvestSpeedMultiplier += effect.harvestSpeedMultiplierBonus;
+    target->levelHealPercent += effect.levelHealPercentBonus;
+    target->bonusEssencePerKill += effect.bonusEssencePerKill;
+    target->researchOnEliteKill += effect.researchOnEliteKill;
+}
+
 }  // namespace
 
-void PrototypeGame::SpawnPlayer() {
+void FleshgolemGame::SpawnPlayer() {
     player_ = registry_.create();
 
     const int marrowRanks = bankedEssence_ / 5;
@@ -50,7 +54,7 @@ void PrototypeGame::SpawnPlayer() {
     runState.encountersPerZone = ZoneDefinitionFor(0).encounters;
     runState.totalZones = static_cast<int>(kZoneCount);
 
-    registry_.emplace<Name>(player_, "Prototype Homunculus");
+    registry_.emplace<Name>(player_, "Stitched Homunculus");
     registry_.emplace<PlayerTag>(player_);
     registry_.emplace<BaseAttributes>(player_, base);
     registry_.emplace<Attributes>(player_);
@@ -63,7 +67,7 @@ void PrototypeGame::SpawnPlayer() {
     registry_.emplace<StabilityState>(player_);
 }
 
-void PrototypeGame::BuildStarterBody() {
+void FleshgolemGame::BuildStarterBody() {
     auto createStarterPart =
         [this](const std::string& name, const SlotType slot, const Attributes bonus,
                const float healthBonus, const float attackBonus, const float attackIntervalBonus,
@@ -129,7 +133,7 @@ void PrototypeGame::BuildStarterBody() {
                       SDL_Color{194, 88, 96, 255});
 }
 
-void PrototypeGame::SpawnEnemyIfNeeded(const float deltaSeconds) {
+void FleshgolemGame::SpawnEnemyIfNeeded(const float deltaSeconds) {
     if (sceneState_ != SceneState::Running || currentEnemy_ != entt::null ||
         currentCorpse_ != entt::null) {
         return;
@@ -148,7 +152,7 @@ void PrototypeGame::SpawnEnemyIfNeeded(const float deltaSeconds) {
     SpawnEnemy(tier, elite, boss);
 }
 
-void PrototypeGame::SpawnEnemy(const int tier, const bool elite, const bool boss) {
+void FleshgolemGame::SpawnEnemy(const int tier, const bool elite, const bool boss) {
     const RunState& runState = registry_.get<RunState>(player_);
     const ZoneDefinition& zone = ZoneDefinitionFor(runState.zoneIndex);
 
@@ -215,7 +219,7 @@ void PrototypeGame::SpawnEnemy(const int tier, const bool elite, const bool boss
     AddLog(line.str());
 }
 
-void PrototypeGame::UpdateAnimation(const float deltaSeconds) {
+void FleshgolemGame::UpdateAnimation(const float deltaSeconds) {
     playerAnimationTime_ += deltaSeconds;
     while (playerAnimationTime_ >= kWalkFrameDuration) {
         playerAnimationTime_ -= kWalkFrameDuration;
@@ -223,7 +227,7 @@ void PrototypeGame::UpdateAnimation(const float deltaSeconds) {
     }
 }
 
-void PrototypeGame::UpdateLane(const float deltaSeconds) {
+void FleshgolemGame::UpdateLane(const float deltaSeconds) {
     if (currentEnemy_ == entt::null || !registry_.valid(currentEnemy_)) {
         return;
     }
@@ -245,7 +249,166 @@ void PrototypeGame::UpdateLane(const float deltaSeconds) {
     AddLog(registry_.get<Name>(currentEnemy_).value + " reaches the graft line. Combat starts.");
 }
 
-void PrototypeGame::RecalculatePlayerStats() {
+void FleshgolemGame::RebuildRunUpgradesFromSkills() {
+    runUpgrades_ = RunUpgrades{};
+
+    if (player_ == entt::null || !registry_.valid(player_)) {
+        return;
+    }
+
+    const RunState& runState = registry_.get<RunState>(player_);
+    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount); ++skillIndex) {
+        const SkillNodeDefinition& definition = SkillDefinition(skillIndex);
+        const int rank = runState.skillRanks[static_cast<std::size_t>(skillIndex)];
+        for (int rankStep = 0; rankStep < rank; ++rankStep) {
+            AddSkillEffect(&runUpgrades_, definition.effectPerRank);
+        }
+    }
+
+    runUpgrades_.decayMultiplier = std::max(0.45F, runUpgrades_.decayMultiplier);
+    runUpgrades_.harvestMultiplier = std::max(1.0F, runUpgrades_.harvestMultiplier);
+    runUpgrades_.harvestSpeedMultiplier = std::max(1.0F, runUpgrades_.harvestSpeedMultiplier);
+    runUpgrades_.levelHealPercent = Clamp(runUpgrades_.levelHealPercent, 0.0F, 0.4F);
+}
+
+int FleshgolemGame::FindFirstSpendableSkill() const {
+    if (player_ == entt::null || !registry_.valid(player_)) {
+        return 0;
+    }
+
+    const RunState& runState = registry_.get<RunState>(player_);
+    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount); ++skillIndex) {
+        const SkillNodeDefinition& definition = SkillDefinition(skillIndex);
+        const int rank = runState.skillRanks[static_cast<std::size_t>(skillIndex)];
+        if (rank < definition.maxRank && SkillPrerequisitesMet(definition, runState.skillRanks)) {
+            return skillIndex;
+        }
+    }
+
+    return 0;
+}
+
+int FleshgolemGame::FindSkillSelection(const int directionX, const int directionY) const {
+    if (directionX == 0 && directionY == 0) {
+        return selectedSkillIndex_;
+    }
+
+    const SDL_FPoint currentCenter = SkillNodeCenter(selectedSkillIndex_);
+    int bestIndex = selectedSkillIndex_;
+    float bestDistance = 1.0e9F;
+
+    for (int skillIndex = 0; skillIndex < static_cast<int>(kSkillNodeCount); ++skillIndex) {
+        if (skillIndex == selectedSkillIndex_) {
+            continue;
+        }
+
+        const SDL_FPoint candidateCenter = SkillNodeCenter(skillIndex);
+        const float deltaX = candidateCenter.x - currentCenter.x;
+        const float deltaY = candidateCenter.y - currentCenter.y;
+
+        if ((directionX < 0 && deltaX >= -8.0F) || (directionX > 0 && deltaX <= 8.0F) ||
+            (directionY < 0 && deltaY >= -8.0F) || (directionY > 0 && deltaY <= 8.0F)) {
+            continue;
+        }
+
+        const float distance = deltaX * deltaX + deltaY * deltaY;
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = skillIndex;
+        }
+    }
+
+    return bestIndex;
+}
+
+void FleshgolemGame::OpenSkillTree() {
+    if (player_ == entt::null || !registry_.valid(player_)) {
+        return;
+    }
+
+    selectedSkillIndex_ = FindFirstSpendableSkill();
+    sceneState_ = SceneState::SkillTree;
+    paused_ = false;
+}
+
+void FleshgolemGame::CloseSkillTree() {
+    if (sceneState_ == SceneState::SkillTree) {
+        sceneState_ = SceneState::Running;
+    }
+}
+
+void FleshgolemGame::AwardExperience(const int amount) {
+    if (amount <= 0 || player_ == entt::null || !registry_.valid(player_)) {
+        return;
+    }
+
+    RunState& runState = registry_.get<RunState>(player_);
+    runState.experience += amount;
+
+    bool leveledUp = false;
+    while (runState.experience >= runState.experienceToNextLevel) {
+        runState.experience -= runState.experienceToNextLevel;
+        runState.level++;
+        runState.skillPoints++;
+        runState.experienceToNextLevel = 6 + runState.level * 3;
+        leveledUp = true;
+
+        if (runUpgrades_.levelHealPercent > 0.0F) {
+            Health& health = registry_.get<Health>(player_);
+            health.current = std::min(
+                health.maximum, health.current + health.maximum * runUpgrades_.levelHealPercent);
+        }
+
+        std::ostringstream line;
+        line << "Level " << runState.level << " reached. Skill point gained.";
+        AddLog(line.str());
+    }
+
+    if (leveledUp) {
+        TriggerRewardAudio();
+        OpenSkillTree();
+    }
+}
+
+bool FleshgolemGame::TrySpendSkillPoint(const int skillIndex) {
+    if (player_ == entt::null || !registry_.valid(player_) || skillIndex < 0 ||
+        skillIndex >= static_cast<int>(kSkillNodeCount)) {
+        return false;
+    }
+
+    RunState& runState = registry_.get<RunState>(player_);
+    SkillNodeDefinition definition = SkillDefinition(skillIndex);
+    int& rank = runState.skillRanks[static_cast<std::size_t>(skillIndex)];
+    if (runState.skillPoints <= 0) {
+        AddLog("No skill points available.");
+        return false;
+    }
+    if (!SkillPrerequisitesMet(definition, runState.skillRanks)) {
+        AddLog("That branch is still locked.");
+        return false;
+    }
+    if (rank >= definition.maxRank) {
+        AddLog(std::string(definition.name) + " is already maxed.");
+        return false;
+    }
+
+    rank++;
+    runState.skillPoints--;
+    runState.spentSkillPoints++;
+    selectedSkillIndex_ = skillIndex;
+
+    RebuildRunUpgradesFromSkills();
+    RecalculatePlayerStats();
+    TriggerRewardAudio();
+
+    std::ostringstream line;
+    line << (rank == 1 ? "Unlocked " : "Enhanced ") << definition.name << " to rank " << rank << "/"
+         << definition.maxRank << ".";
+    AddLog(line.str());
+    return true;
+}
+
+void FleshgolemGame::RecalculatePlayerStats() {
     if (player_ == entt::null || !registry_.valid(player_)) {
         return;
     }
@@ -321,7 +484,7 @@ void PrototypeGame::RecalculatePlayerStats() {
     registry_.replace<CombatStats>(player_, stats);
 }
 
-void PrototypeGame::UpdateCombat(const float deltaSeconds) {
+void FleshgolemGame::UpdateCombat(const float deltaSeconds) {
     if (!combatJoined_ || currentEnemy_ == entt::null || !registry_.valid(currentEnemy_)) {
         return;
     }
@@ -347,7 +510,7 @@ void PrototypeGame::UpdateCombat(const float deltaSeconds) {
     }
 }
 
-void PrototypeGame::ResolveAttack(const entt::entity attacker, const entt::entity defender) {
+void FleshgolemGame::ResolveAttack(const entt::entity attacker, const entt::entity defender) {
     if (!registry_.valid(attacker) || !registry_.valid(defender)) {
         return;
     }
@@ -392,7 +555,7 @@ void PrototypeGame::ResolveAttack(const entt::entity attacker, const entt::entit
     }
 }
 
-void PrototypeGame::OnEnemyDefeated(const entt::entity enemy) {
+void FleshgolemGame::OnEnemyDefeated(const entt::entity enemy) {
     if (!registry_.valid(enemy)) {
         return;
     }
@@ -403,11 +566,13 @@ void PrototypeGame::OnEnemyDefeated(const entt::entity enemy) {
     RunState& runState = registry_.get<RunState>(player_);
 
     resources.kills++;
-    resources.essence += 1 + enemyInfo.tier + (enemyInfo.elite ? 2 : 0) + (enemyInfo.boss ? 2 : 0);
+    resources.essence += 1 + enemyInfo.tier + (enemyInfo.elite ? 2 : 0) + (enemyInfo.boss ? 2 : 0) +
+                         runUpgrades_.bonusEssencePerKill;
     runState.depth++;
     if (enemyInfo.elite) {
         runState.elitesDefeated++;
         runState.eliteCountdown = 3;
+        resources.research += runUpgrades_.researchOnEliteKill;
     } else {
         runState.eliteCountdown--;
     }
@@ -438,21 +603,23 @@ void PrototypeGame::OnEnemyDefeated(const entt::entity enemy) {
     AddLog(registry_.get<Name>(enemy).value + " falls. Harvest the remains.");
     registry_.destroy(enemy);
     currentEnemy_ = entt::null;
+
+    AwardExperience(2 + enemyInfo.tier + (enemyInfo.elite ? 2 : 0) + (enemyInfo.boss ? 3 : 0));
 }
 
-void PrototypeGame::UpdateHarvesting(const float deltaSeconds) {
+void FleshgolemGame::UpdateHarvesting(const float deltaSeconds) {
     if (currentCorpse_ == entt::null || !registry_.valid(currentCorpse_)) {
         return;
     }
 
     Corpse& corpse = registry_.get<Corpse>(currentCorpse_);
-    corpse.harvestTimer -= deltaSeconds;
+    corpse.harvestTimer -= deltaSeconds * runUpgrades_.harvestSpeedMultiplier;
     if (corpse.harvestTimer <= 0.0F) {
         HarvestCorpse(currentCorpse_);
     }
 }
 
-void PrototypeGame::HarvestCorpse(const entt::entity corpseEntity) {
+void FleshgolemGame::HarvestCorpse(const entt::entity corpseEntity) {
     if (!registry_.valid(corpseEntity)) {
         return;
     }
@@ -612,26 +779,32 @@ void PrototypeGame::HarvestCorpse(const entt::entity corpseEntity) {
     runState.zoneEncounter++;
 
     const bool zoneCleared = runState.zoneEncounter >= runState.encountersPerZone;
+    const bool finalZoneCleared = zoneCleared && runState.zoneIndex + 1 >= runState.totalZones;
 
     registry_.destroy(corpseEntity);
     currentCorpse_ = entt::null;
 
-    if (corpse.boss || zoneCleared) {
-        pendingZoneAdvance_ = zoneCleared;
-        pendingVictory_ = zoneCleared && runState.zoneIndex + 1 >= runState.totalZones;
-        OpenRewardDraft(true, zoneCleared);
+    if (finalZoneCleared) {
+        FinishRun(true);
         return;
     }
 
-    if (corpse.elite) {
-        OpenRewardDraft(false, false);
+    if (zoneCleared) {
+        AddLog("Zone clear. The fleshframe lurches into the next district.");
+        AdvanceToNextZone();
         return;
+    }
+
+    if (corpse.boss) {
+        AddLog("Boss remains processed. The lane churns toward the next wave.");
+    } else if (corpse.elite) {
+        AddLog("Elite remains processed. The tree can be opened at any time with K.");
     }
 
     enemySpawnDelay_ = 1.0F;
 }
 
-void PrototypeGame::UpdateDecay(const float deltaSeconds) {
+void FleshgolemGame::UpdateDecay(const float deltaSeconds) {
     const float overload = registry_.get<StabilityState>(player_).overload;
     const float multiplier = (1.0F + overload * 0.22F) * runUpgrades_.decayMultiplier;
 
@@ -650,7 +823,7 @@ void PrototypeGame::UpdateDecay(const float deltaSeconds) {
     }
 }
 
-void PrototypeGame::AdvanceToNextZone() {
+void FleshgolemGame::AdvanceToNextZone() {
     RunState& runState = registry_.get<RunState>(player_);
     runState.zoneIndex = std::min(runState.zoneIndex + 1, runState.totalZones - 1);
     runState.zoneEncounter = 0;
@@ -666,173 +839,7 @@ void PrototypeGame::AdvanceToNextZone() {
     enemySpawnDelay_ = 1.2F;
 }
 
-void PrototypeGame::OpenRewardDraft(const bool majorReward, const bool zoneClearReward) {
-    rewardOptions_.fill(RewardOption{});
-    rewardSelectionIndex_ = 0;
-    sceneState_ = SceneState::RewardDraft;
-    paused_ = false;
-
-    const RunState& runState = registry_.get<RunState>(player_);
-    const ZoneDefinition& zone = ZoneDefinitionFor(runState.zoneIndex);
-    const float scale = majorReward ? 1.7F : 1.0F;
-
-    rewardDraftTitle_ =
-        zoneClearReward ? std::string("Zone Cleared: ") + zone.name : std::string("Reward Draft");
-    rewardDraftSubtitle_ = zoneClearReward ? "Choose one graft protocol before the next march."
-                                           : "Choose one elite trophy to steer this run.";
-
-    std::vector<RewardOption> pool;
-    pool.reserve(8);
-
-    RewardOption marrowSurge;
-    marrowSurge.name = "Marrow Surge";
-    marrowSurge.description = "More Might, Agility, attack power, and a faster rhythm.";
-    marrowSurge.color = SDL_Color{178, 92, 86, 255};
-    marrowSurge.attributeBonus =
-        ScaleAttributes(Attributes{1.4F, 0.0F, 0.9F, 0.0F, 0.0F, 0.0F}, scale);
-    marrowSurge.attackBonus = 2.4F * scale;
-    marrowSurge.attackIntervalBonus = -0.04F * scale;
-    pool.push_back(marrowSurge);
-
-    RewardOption ironSutures;
-    ironSutures.name = "Iron Sutures";
-    ironSutures.description = "More Vitality, armor, and stability capacity.";
-    ironSutures.color = SDL_Color{128, 148, 164, 255};
-    ironSutures.attributeBonus =
-        ScaleAttributes(Attributes{0.0F, 1.6F, 0.0F, 0.0F, 0.0F, 0.0F}, scale);
-    ironSutures.healthBonus = 18.0F * scale;
-    ironSutures.armorBonus = 1.6F * scale;
-    ironSutures.stabilityCapacityBonus = 1.2F * scale;
-    pool.push_back(ironSutures);
-
-    RewardOption predatorNerves;
-    predatorNerves.name = "Predator Nerves";
-    predatorNerves.description = "More Instinct, crit, evasion, and cleaner strikes.";
-    predatorNerves.color = SDL_Color{112, 162, 112, 255};
-    predatorNerves.attributeBonus =
-        ScaleAttributes(Attributes{0.0F, 0.0F, 0.0F, 0.0F, 1.5F, 0.0F}, scale);
-    predatorNerves.critChanceBonus = 0.018F * scale;
-    predatorNerves.evasionBonus = 0.018F * scale;
-    pool.push_back(predatorNerves);
-
-    RewardOption neuralLattice;
-    neuralLattice.name = "Neural Lattice";
-    neuralLattice.description = "More Reason, better harvests, and broader stability.";
-    neuralLattice.color = SDL_Color{106, 132, 208, 255};
-    neuralLattice.attributeBonus =
-        ScaleAttributes(Attributes{0.0F, 0.0F, 0.0F, 1.4F, 0.0F, 0.0F}, scale);
-    neuralLattice.harvestMultiplierFactor = 1.0F + 0.16F * scale;
-    neuralLattice.stabilityCapacityBonus = 0.8F * scale;
-    neuralLattice.researchBonus = static_cast<int>(std::round(1.0F * scale));
-    pool.push_back(neuralLattice);
-
-    RewardOption preservationBath;
-    preservationBath.name = "Preservation Bath";
-    preservationBath.description = "Slower decay, a strong heal, and more biomass stock.";
-    preservationBath.color = SDL_Color{96, 180, 180, 255};
-    preservationBath.decayMultiplierFactor = 0.86F - (majorReward ? 0.08F : 0.0F);
-    preservationBath.immediateHealPercent = 0.32F + (majorReward ? 0.16F : 0.0F);
-    preservationBath.biomassBonus = 10 + (majorReward ? 12 : 0);
-    pool.push_back(preservationBath);
-
-    RewardOption blackIchor;
-    blackIchor.name = "Black Ichor";
-    blackIchor.description = "Aggressive corrupted power with bonus essence and crit.";
-    blackIchor.color = SDL_Color{164, 82, 166, 255};
-    blackIchor.attributeBonus =
-        ScaleAttributes(Attributes{0.6F, 0.0F, 0.0F, 0.0F, 0.6F, 1.2F}, scale);
-    blackIchor.attackBonus = 2.0F * scale;
-    blackIchor.critChanceBonus = 0.012F * scale;
-    blackIchor.essenceBonus = static_cast<int>(std::round(2.0F * scale));
-    pool.push_back(blackIchor);
-
-    RewardOption stitcherCache;
-    stitcherCache.name = "Stitcher Cache";
-    stitcherCache.description = "Immediate Biomass, Bone Meal, Research, and a partial heal.";
-    stitcherCache.color = SDL_Color{200, 168, 94, 255};
-    stitcherCache.biomassBonus = 12 + (majorReward ? 10 : 0);
-    stitcherCache.boneMealBonus = 8 + (majorReward ? 6 : 0);
-    stitcherCache.researchBonus = 1 + (majorReward ? 2 : 0);
-    stitcherCache.immediateHealPercent = 0.2F + (majorReward ? 0.1F : 0.0F);
-    pool.push_back(stitcherCache);
-
-    RewardOption warSpine;
-    warSpine.name = "War Spine";
-    warSpine.description = "More Might, Reason, armor, and direct attack force.";
-    warSpine.color = SDL_Color{170, 116, 84, 255};
-    warSpine.attributeBonus =
-        ScaleAttributes(Attributes{1.0F, 0.0F, 0.0F, 0.9F, 0.0F, 0.0F}, scale);
-    warSpine.attackBonus = 1.8F * scale;
-    warSpine.armorBonus = 1.2F * scale;
-    pool.push_back(warSpine);
-
-    std::vector<int> indices(pool.size());
-    std::iota(indices.begin(), indices.end(), 0);
-    std::shuffle(indices.begin(), indices.end(), rng_);
-
-    for (std::size_t index = 0; index < kRewardChoiceCount; ++index) {
-        rewardOptions_[index] = pool[static_cast<std::size_t>(indices[index])];
-    }
-
-    registry_.get<RunState>(player_).rewardDrafts++;
-    TriggerRewardAudio();
-    AddLog("The stitching table offers three graft protocols.");
-}
-
-void PrototypeGame::ApplyRewardChoice(const int index) {
-    if (index < 0 || index >= static_cast<int>(kRewardChoiceCount)) {
-        return;
-    }
-
-    RewardOption option = rewardOptions_[static_cast<std::size_t>(index)];
-    rewardSelectionIndex_ = index;
-
-    AddAttributes(&runUpgrades_.attributeBonus, option.attributeBonus);
-    runUpgrades_.healthBonus += option.healthBonus;
-    runUpgrades_.attackBonus += option.attackBonus;
-    runUpgrades_.attackIntervalBonus += option.attackIntervalBonus;
-    runUpgrades_.critChanceBonus += option.critChanceBonus;
-    runUpgrades_.armorBonus += option.armorBonus;
-    runUpgrades_.evasionBonus += option.evasionBonus;
-    runUpgrades_.stabilityCapacityBonus += option.stabilityCapacityBonus;
-    runUpgrades_.decayMultiplier *= option.decayMultiplierFactor;
-    runUpgrades_.harvestMultiplier *= option.harvestMultiplierFactor;
-    runUpgrades_.rewardHealPercent =
-        std::max(runUpgrades_.rewardHealPercent, option.immediateHealPercent * 0.4F);
-
-    Resources& resources = registry_.get<Resources>(player_);
-    resources.biomass += option.biomassBonus;
-    resources.boneMeal += option.boneMealBonus;
-    resources.essence += option.essenceBonus;
-    resources.research += option.researchBonus;
-
-    RecalculatePlayerStats();
-    if (option.immediateHealPercent > 0.0F) {
-        Health& health = registry_.get<Health>(player_);
-        health.current =
-            std::min(health.maximum, health.current + health.maximum * option.immediateHealPercent);
-    }
-
-    AddLog("Selected reward: " + option.name + ".");
-
-    if (pendingVictory_) {
-        pendingVictory_ = false;
-        pendingZoneAdvance_ = false;
-        FinishRun(true);
-        return;
-    }
-
-    if (pendingZoneAdvance_) {
-        pendingZoneAdvance_ = false;
-        AdvanceToNextZone();
-    } else {
-        enemySpawnDelay_ = 1.0F;
-    }
-
-    sceneState_ = SceneState::Running;
-}
-
-void PrototypeGame::FinishRun(const bool victory) {
+void FleshgolemGame::FinishRun(const bool victory) {
     if (player_ == entt::null || !registry_.valid(player_)) {
         return;
     }
@@ -866,7 +873,7 @@ void PrototypeGame::FinishRun(const bool victory) {
     }
 }
 
-void PrototypeGame::DissolveRun() {
+void FleshgolemGame::DissolveRun() {
     if (player_ == entt::null || !registry_.valid(player_)) {
         return;
     }

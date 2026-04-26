@@ -65,10 +65,13 @@ endif()
 add_executable(
     idlegolem
     src/main.cpp
-    src/prototype_game.cpp
-    src/prototype_game_gameplay.cpp
-    src/prototype_game_render.cpp
+    src/engine/sdl_application.cpp
+    src/game/fleshgolem_game.cpp
+    src/game/fleshgolem_game_gameplay.cpp
+    src/game/fleshgolem_game_render.cpp
 )
+
+target_include_directories(idlegolem PRIVATE src)
 
 target_link_libraries(idlegolem PRIVATE EnTT::EnTT SDL3::SDL3)
 

@@ -1,4 +1,4 @@
-# Copilot Instructions
+#Copilot Instructions
 
 ## Build commands
 
@@ -9,8 +9,10 @@ cmake --build build
 
 ## High-level architecture
 
-- The current runtime is a very small SDL3 prototype in `src/main.cpp`. It owns the full executable lifecycle itself: `SDL_Init`, window creation, renderer creation, the event/render loop, and explicit teardown.
-- `CMakeLists.txt` builds a single executable named `idlegolem`, requires C++20, and links against SDL3. It prefers a system SDL3 package first and falls back to fetching SDL 3.4.0 with `FetchContent`.
+- `src/main.cpp` is a thin entrypoint that wires the concrete game into the engine layer.
+- `src/engine/` owns the SDL3 application lifecycle: init, window and renderer creation, the event loop, timing, presentation, and teardown.
+- `src/game/` owns Fleshgolem-specific gameplay, content, rendering, and audio.
+- `CMakeLists.txt` builds a single executable named `idlegolem`, requires C++20, and links against SDL3 and EnTT. It prefers installed SDL3 3.4.4 / EnTT 3.16.0 packages and falls back to `FetchContent` when needed.
 - Game structure and feature intent are documented outside the runtime code. `GDD.md` is the more detailed source for the incremental-idle RPG loop, body-part system, automation, and meta-progression. `game_design_document.md` covers the same game at a higher level with some different terminology. When adding gameplay systems, use the docs as product guidance and keep terminology consistent instead of inventing a third interpretation.
 
 ## Key conventions

@@ -1,9 +1,9 @@
-# idlegolem
+#idlegolem
 
 **idlegolem** is a C++20 SDL3 + EnTT demo for **Fleshgolem**, a dark-fantasy idle RPG about
 building a stronger body from scavenged enemy parts.
 
-The project has moved past the original prototype into a **gameplay-first demo** with:
+The project has moved past the original vertical slice into a **gameplay-first demo** with:
 
 - a title screen and run-to-run flow
 - three themed zones with unique backdrops
@@ -15,7 +15,9 @@ The project has moved past the original prototype into a **gameplay-first demo**
 
 ## Repository layout
 
-- `src/` - application code, gameplay systems, and rendering
+- `src/engine/` - SDL application bootstrap and engine-facing runtime interfaces
+- `src/game/` - Fleshgolem-specific gameplay, assets loading, audio, and rendering logic
+- `src/main.cpp` - application entry point wiring the game into the engine layer
 - `assets/` - generated sprite sheets, title art, and zone backdrops
 - `design_document/GDD.md` - game design reference
 - `design_document/ECS.md` - ECS architecture reference
