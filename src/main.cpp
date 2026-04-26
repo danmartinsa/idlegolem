@@ -15,8 +15,7 @@ int main(int, char**) {
         return 1;
     }
 
-    SDL_Window* window =
-        SDL_CreateWindow(kWindowTitle, kWindowWidth, kWindowHeight, 0);
+    SDL_Window* window = SDL_CreateWindow(kWindowTitle, kWindowWidth, kWindowHeight, 0);
     if (window == nullptr) {
         SDL_Log("SDL_CreateWindow failed: %s", SDL_GetError());
         SDL_Quit();
@@ -50,8 +49,7 @@ int main(int, char**) {
         }
 
         const Uint64 currentTicks = SDL_GetTicks();
-        const float deltaSeconds =
-            static_cast<float>(currentTicks - lastTicks) / 1000.0F;
+        const float deltaSeconds = static_cast<float>(currentTicks - lastTicks) / 1000.0F;
         lastTicks = currentTicks;
 
         game.Update(deltaSeconds);

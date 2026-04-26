@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <array>
 #include <deque>
 #include <entt/entt.hpp>
 #include <random>
@@ -53,6 +54,7 @@ class PrototypeGame {
 
     SDL_Renderer* renderer_ = nullptr;
     SDL_Texture* playerSpriteSheet_ = nullptr;
+    std::array<SDL_Texture*, 4> enemySpriteSheets_{};
     entt::registry registry_;
     entt::entity player_ = entt::null;
     entt::entity currentEnemy_ = entt::null;
@@ -75,4 +77,5 @@ class PrototypeGame {
     std::deque<std::string> eventLog_;
     std::string windowTitle_;
     std::string spriteSheetPath_;
+    std::array<std::string, 4> enemySpriteSheetPaths_{};
 };
