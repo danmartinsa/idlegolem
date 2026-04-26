@@ -38,6 +38,7 @@ int main(int, char**) {
 
     bool isRunning = true;
     Uint64 lastTicks = SDL_GetTicks();
+
     while (isRunning) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -55,6 +56,7 @@ int main(int, char**) {
 
         game.Update(deltaSeconds);
         SDL_SetWindowTitle(window, game.WindowTitle().c_str());
+
         game.Render();
         SDL_RenderPresent(renderer);
 

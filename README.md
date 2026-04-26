@@ -6,10 +6,11 @@
 
 The playable prototype includes:
 
-- a single-window SDL3 presentation layer with debug-text UI
+- a single-window SDL3 presentation layer with a side-view encounter lane
+- a generated player walk sprite sheet loaded directly by SDL3
 - an EnTT-driven gameplay loop
 - a homunculus with modular body slots
-- auto-combat against scaling enemies
+- enemies that enter from the right side of the screen and start combat on contact
 - corpse harvesting for Biomass, Bone Meal, Essence, and body-part loot
 - automatic grafting of stronger parts and salvaging of weaker ones
 - part freshness/decay and stability overload
@@ -18,6 +19,7 @@ The playable prototype includes:
 ## Repository layout
 
 - `src/` - application entry point and gameplay prototype code
+- `assets/` - sprite and other runtime assets used by the prototype
 - `design_document/GDD.md` - game design reference
 - `design_document/ECS.md` - ECS architecture reference
 - `CMakeLists.txt` - build configuration, SDL3/EnTT dependency setup
