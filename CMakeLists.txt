@@ -65,10 +65,6 @@ endif()
 add_executable(
     idlegolem
     src/main.cpp
-    src/engine/sdl_application.cpp
-    src/game/fleshgolem_game.cpp
-    src/game/fleshgolem_game_gameplay.cpp
-    src/game/fleshgolem_game_render.cpp
 )
 
 target_include_directories(idlegolem PRIVATE src)
