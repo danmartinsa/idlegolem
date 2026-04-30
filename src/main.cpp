@@ -22,17 +22,15 @@ struct Resources {
 
     ~Resources() { DestroyAssets(); }
 
-    bool loadTexture(SDL_Renderer *renderer, SDL_Texture *tex,
-                     const char *path) {
+    SDL_Texture *loadTexture(SDL_Renderer *renderer, const char *path) {
+        SDL_Texture *tex;
         if (!renderer) {
             SDL_Log("loadTexture failed for %s: renderer is null", path);
-            return false;
         }
 
         SDL_Surface *surface = SDL_LoadPNG(path);
         if (!surface) {
             SDL_Log("SDL_LoadPNG failed for %s: %s", path, SDL_GetError());
-            return false;
         }
 
         tex = SDL_CreateTextureFromSurface(renderer, surface);
@@ -41,21 +39,23 @@ struct Resources {
         if (tex == nullptr) {
             SDL_Log("SDL_CreateTextureFromSurface failed for %s: %s", path,
                     SDL_GetError());
-            return false;
         }
 
-        return true;
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
+
+        return tex;
     }
 
     void LoadAssets(SDL_Renderer *renderer) {
         DestroyAssets();
-        if (!loadTexture(renderer, zombieIdle,
-                         "assets/pppack/Enemies/Zombie_Axe/"
-                         "Zombie_Axe_Side-left_Idle-Sheet6.png")) {
-            SDL_Log("Failed to load zombie idle texture.");
-        } else {
-            textures.push_back(zombieIdle);
-        }
+        zombieIdle = loadTexture(renderer,
+                                 "assets/pppack/Enemies/Zombie_Axe/"
+                                 "Zombie_Axe_Side-left_Idle-Sheet6.png");
+        textures.push_back(zombieIdle);
+        zombieWalk = loadTexture(renderer,
+                                 "assets/pppack/Enemies/Zombie_Axe/"
+                                 "Zombie_Axe_Side-left_Walk-Sheet8.png");
+        textures.push_back(zombieWalk);
     }
 };
 
@@ -73,15 +73,35 @@ void Update(float deltaTime) {
     const float clampedDelta = std::clamp(deltaTime, 0.0F, 0.05F);
 };
 
-void Render(SDL_Renderer *renderer) {
+enum ZombieState { Idle, Walk, Dig };
+
+void RenderZombie(SDL_Renderer *renderer, Resources &res) {
+    SDL_FRect src{.x = 0.0f, .y = 0.0f, .w = 22.0f, .h = 21.0f};
+    SDL_FRect dst{.x = 100.0f, .y = 100.0f, .w = 128.0f, .h = 128.0f};
+
+    ZombieState zState = ZombieState::Idle;
+    switch (zState) {
+        case ZombieState::Idle:
+            SDL_RenderTexture(renderer, res.zombieIdle, &src, &dst);
+            break;
+        case ZombieState::Walk:
+            SDL_RenderTexture(renderer, res.zombieWalk, &src, &dst);
+            break;
+        case ZombieState::Dig:
+            break;
+    }
+}
+
+void Render(SDL_Renderer *renderer, Resources &res) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
     SDL_FRect box{.x = 100.0F, .y = 100.0F, .w = 200.0F, .h = 200.0F};
-
     SDL_RenderFillRect(renderer, &box);
+
+    RenderZombie(renderer, res);
 }
 
 bool RunApplication() {
@@ -106,6 +126,9 @@ bool RunApplication() {
         return false;
     }
 
+    Resources res;
+    res.LoadAssets(renderer);
+
     bool running = true;
     Uint64 lastTicks = SDL_GetTicks();
 
@@ -125,7 +148,7 @@ bool RunApplication() {
 
         Update(deltaTime);
 
-        Render(renderer);
+        Render(renderer, res);
         SDL_RenderPresent(renderer);
     }
 
