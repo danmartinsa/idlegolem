@@ -10,8 +10,6 @@ int WINDOW_HEIGHT = 720;
 
 int SpawnZombie() { return 0; }
 
-namespace {}  // namespace
-
 void Resources::LoadAssets(SDL_Renderer *renderer) {
     DestroyAssets();
     zombieIdle = loadTexture(renderer,
@@ -123,7 +121,7 @@ bool Game::RunApplication() {
 
         Update(deltaTime);
 
-        Render(renderer, res);
+        Render(renderer, res_);
         SDL_RenderPresent(renderer);
     }
 
@@ -136,10 +134,8 @@ bool Game::RunApplication() {
 
 int main(int argc, char *argv[]) {
     Game FleshGolemGame;
-    return FleshGolemGame.RunApplication();
-    // return FleshgolemGame.
-    // if (!fleshGolem.get().RunApplication()) {
-    //     SDL_Log("Application failed to run.");
-    //     return 1;
-    // }
+    if (!FleshGolemGame.RunApplication()) {
+        SDL_Log("Application failed to run.");
+        return 1;
+    }
 }

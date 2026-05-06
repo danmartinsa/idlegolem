@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include <entt/entt.hpp>
+#include <vector>
 
 struct ApplicationConfig {
     int windowWidth = 1280;
@@ -14,7 +15,8 @@ enum ZombieState { Idle, Walk, Dig };
 class Resources {
    public:
     std::vector<SDL_Texture *> textures;
-    SDL_Texture *zombieIdle, *zombieWalk;
+    SDL_Texture *zombieIdle = nullptr;
+    SDL_Texture *zombieWalk = nullptr;
 
     void DestroyAssets() {
         if (!textures.empty()) {
@@ -54,8 +56,8 @@ class Resources {
 };
 class Game {
    public:
-    Game();
-    ~Game();
+    Game() = default;
+    ~Game() = default;
 
     Game(const Game &) = delete;
     Game &operator=(const Game &) = delete;
@@ -80,4 +82,4 @@ class Game {
     float zombieAnimationTime = 0.0f;
     int zombieAnimationFrame = 0;
     ZombieState zombieState = ZombieState::Idle;
-}
+};
