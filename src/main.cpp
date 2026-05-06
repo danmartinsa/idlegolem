@@ -3,63 +3,40 @@
 #include <algorithm>
 #include <vector>
 
+#include "config.h"
+
 int WINDOW_WIDTH = 1280;
 int WINDOW_HEIGHT = 720;
 
 int SpawnZombie() { return 0; }
 
-struct Resources {
-    std::vector<SDL_Texture *> textures;
-    SDL_Texture *zombieIdle, *zombieWalk;
+namespace {}  // namespace
 
-    void DestroyAssets() {
-        if (!textures.empty()) {
-            for (SDL_Texture *texture : textures) {
-                SDL_DestroyTexture(texture);
-            }
-        }
+void Resources::LoadAssets(SDL_Renderer *renderer) {
+    DestroyAssets();
+    zombieIdle = loadTexture(renderer,
+                             "assets/pppack/Enemies/Zombie_Axe/"
+                             "Zombie_Axe_Side-left_Idle-Sheet6.png");
+    textures.push_back(zombieIdle);
+    zombieWalk = loadTexture(renderer,
+                             "assets/pppack/Enemies/Zombie_Axe/"
+                             "Zombie_Axe_Side-left_Walk-Sheet8.png");
+    textures.push_back(zombieWalk);
+}
+
+void Game::UpdateAnimation(const float deltaTime) {
+    zombieAnimationTime += deltaTime;
+
+    const int frameCount =
+        (zombieState == ZombieState::Walk) ? kWalkFrameCount : kIdleFrameCount;
+
+    while (zombieAnimationTime >= kFrameDuration) {
+        zombieAnimationTime -= kFrameDuration;
+        zombieAnimationFrame = (zombieAnimationFrame + 1) % frameCount;
     }
+}
 
-    ~Resources() { DestroyAssets(); }
-
-    SDL_Texture *loadTexture(SDL_Renderer *renderer, const char *path) {
-        SDL_Texture *tex;
-        if (!renderer) {
-            SDL_Log("loadTexture failed for %s: renderer is null", path);
-        }
-
-        SDL_Surface *surface = SDL_LoadPNG(path);
-        if (!surface) {
-            SDL_Log("SDL_LoadPNG failed for %s: %s", path, SDL_GetError());
-        }
-
-        tex = SDL_CreateTextureFromSurface(renderer, surface);
-        SDL_DestroySurface(surface);
-
-        if (tex == nullptr) {
-            SDL_Log("SDL_CreateTextureFromSurface failed for %s: %s", path,
-                    SDL_GetError());
-        }
-
-        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
-
-        return tex;
-    }
-
-    void LoadAssets(SDL_Renderer *renderer) {
-        DestroyAssets();
-        zombieIdle = loadTexture(renderer,
-                                 "assets/pppack/Enemies/Zombie_Axe/"
-                                 "Zombie_Axe_Side-left_Idle-Sheet6.png");
-        textures.push_back(zombieIdle);
-        zombieWalk = loadTexture(renderer,
-                                 "assets/pppack/Enemies/Zombie_Axe/"
-                                 "Zombie_Axe_Side-left_Walk-Sheet8.png");
-        textures.push_back(zombieWalk);
-    }
-};
-
-void HandleEvent(const SDL_Event &event) {
+void Game::HandleEvent(const SDL_Event &event) {
     if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
         event.button.button == SDL_BUTTON_LEFT) {
         const float mouseX = event.button.x;
@@ -69,13 +46,12 @@ void HandleEvent(const SDL_Event &event) {
     }
 }
 
-void Update(float deltaTime) {
+void Game::Update(float deltaTime) {
     const float clampedDelta = std::clamp(deltaTime, 0.0F, 0.05F);
+    UpdateAnimation(clampedDelta);
 };
 
-enum ZombieState { Idle, Walk, Dig };
-
-void RenderZombie(SDL_Renderer *renderer, Resources &res) {
+void Game::RenderZombie(SDL_Renderer *renderer, Resources &res) {
     SDL_FRect src{.x = 0.0f, .y = 0.0f, .w = 22.0f, .h = 21.0f};
     SDL_FRect dst{.x = 100.0f, .y = 100.0f, .w = 128.0f, .h = 128.0f};
 
@@ -92,7 +68,7 @@ void RenderZombie(SDL_Renderer *renderer, Resources &res) {
     }
 }
 
-void Render(SDL_Renderer *renderer, Resources &res) {
+void Game::Render(SDL_Renderer *renderer, Resources &res) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
@@ -104,7 +80,7 @@ void Render(SDL_Renderer *renderer, Resources &res) {
     RenderZombie(renderer, res);
 }
 
-bool RunApplication() {
+bool Game::RunApplication() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
         return false;
@@ -126,8 +102,7 @@ bool RunApplication() {
         return false;
     }
 
-    Resources res;
-    res.LoadAssets(renderer);
+    res_.LoadAssets(renderer);
 
     bool running = true;
     Uint64 lastTicks = SDL_GetTicks();
@@ -160,8 +135,11 @@ bool RunApplication() {
 }
 
 int main(int argc, char *argv[]) {
-    if (!RunApplication()) {
-        SDL_Log("Application failed to run.");
-        return 1;
-    }
+    Game FleshGolemGame;
+    return FleshGolemGame.RunApplication();
+    // return FleshgolemGame.
+    // if (!fleshGolem.get().RunApplication()) {
+    //     SDL_Log("Application failed to run.");
+    //     return 1;
+    // }
 }
