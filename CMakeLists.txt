@@ -23,6 +23,11 @@ option(
     "Prefer an installed EnTT package before fetching it"
     ON
 )
+option(
+    IDLEGOLEM_USE_SYSTEM_GLM
+    "Prefer an installed GLM package before fetching it"
+    ON
+)
 
 if(IDLEGOLEM_USE_SYSTEM_SDL3)
   find_package(SDL3 3.4.4 CONFIG QUIET)
@@ -32,7 +37,11 @@ if(IDLEGOLEM_USE_SYSTEM_ENTT)
   find_package(EnTT CONFIG QUIET)
 endif()
 
-if(NOT SDL3_FOUND OR NOT EnTT_FOUND)
+if(IDLEGOLEM_USE_SYSTEM_GLM)
+  find_package(glm CONFIG QUIET)
+endif()
+
+if(NOT SDL3_FOUND OR NOT EnTT_FOUND OR NOT glm_FOUND)
   include(FetchContent)
 endif()
 
@@ -62,14 +71,28 @@ if(NOT EnTT_FOUND)
   FetchContent_MakeAvailable(EnTT)
 endif()
 
+if(NOT glm_FOUND)
+  FetchContent_Declare(
+        glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG 1.0.1
+        GIT_SHALLOW TRUE
+    )
+
+  FetchContent_MakeAvailable(glm)
+endif()
+
 add_executable(
     idlegolem
+    src/engine/application.cpp
+    src/game/game.cpp
+    src/game/resources.cpp
     src/main.cpp
 )
 
 target_include_directories(idlegolem PRIVATE src)
 
-target_link_libraries(idlegolem PRIVATE EnTT::EnTT SDL3::SDL3)
+target_link_libraries(idlegolem PRIVATE EnTT::EnTT SDL3::SDL3 glm::glm)
 
 if(CMAKE_EXPORT_COMPILE_COMMANDS)
   file(
