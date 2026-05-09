@@ -6,37 +6,38 @@
 #include <entt/entt.hpp>
 
 #include "engine/application_config.h"
+#include "engine/game_interface.h"
 #include "game/components.h"
 #include "game/resources.h"
 
 namespace idlegolem::game {
 
 // Concrete game layer. Owns ECS state, resources, simulation, and rendering.
-class Game {
+class Game : public engine::GameInterface {
    public:
     Game() = default;
-    ~Game() = default;
+    ~Game() override = default;
 
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
 
     // Window and timing config consumed by the engine layer.
-    [[nodiscard]] const engine::ApplicationConfig& Config() const;
+    [[nodiscard]] const engine::ApplicationConfig& Config() const override;
 
     // Load runtime resources and seed the first scene.
-    [[nodiscard]] bool Initialize(SDL_Renderer* renderer);
+    [[nodiscard]] bool Initialize(SDL_Renderer* renderer) override;
 
     // Clear ECS state and release runtime resources.
-    void Shutdown();
+    void Shutdown() override;
 
     // Translate SDL input into gameplay actions.
-    void HandleEvent(const SDL_Event& event);
+    void HandleEvent(const SDL_Event& event) override;
 
     // Advance one simulation step for the current frame.
-    void Update(float deltaTime);
+    void Update(float deltaTime) override;
 
     // Record the current frame's draw commands.
-    void Render(SDL_Renderer* renderer) const;
+    void Render(SDL_Renderer* renderer) const override;
 
    private:
     // Input and spawning.

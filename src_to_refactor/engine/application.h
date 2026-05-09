@@ -1,8 +1,6 @@
 #pragma once
 
-namespace idlegolem::game {
-class Game;
-}
+#include "engine/game_interface.h"
 
 namespace idlegolem::engine {
 
@@ -11,7 +9,7 @@ namespace idlegolem::engine {
 class Application {
    public:
     // Run one game instance through the SDL application lifecycle.
-    [[nodiscard]] bool Run(game::Game& game) const;
+    [[nodiscard]] bool Run(GameInterface& game) const;
 };
 
 }  // namespace idlegolem::engine

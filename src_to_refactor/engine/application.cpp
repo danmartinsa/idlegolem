@@ -2,11 +2,9 @@
 
 #include <SDL3/SDL.h>
 
-#include "game/game.h"
-
 namespace idlegolem::engine {
 
-bool Application::Run(game::Game& game) const {
+bool Application::Run(GameInterface& game) const {
     // Keep SDL startup and shutdown in one place.
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
