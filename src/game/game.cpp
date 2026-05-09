@@ -1,6 +1,10 @@
 #include "game/game.h"
 
 #include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <vector>
 
 namespace {
 
@@ -11,6 +15,26 @@ constexpr float kZombieSpeed = -54.0f;
 constexpr float kSkeletonSpeed = -32.0f;
 constexpr float kSkeletonDigCooldownSeconds = 1.8f;
 constexpr float kSkeletonDigDurationSeconds = 0.75f;
+constexpr float kGroundTopOffset = 86.0f;
+constexpr float kBoneRenderSize = 32.0f;
+constexpr float kBoneSpawnX = 96.0f;
+constexpr float kBoneFlightMinSeconds = 0.45f;
+constexpr float kBoneFlightMaxSeconds = 1.0f;
+constexpr float kBoneFlightDistanceScale = 480.0f;
+constexpr float kBoneSourceSize = 16.0f;
+constexpr float kUiPadding = 16.0f;
+constexpr float kUiIconSize = 24.0f;
+constexpr float kUiTextGap = 12.0f;
+constexpr float kUiCounterFontSize = 20.0f;
+constexpr SDL_Color kUiPanelColor{22, 20, 18, 220};
+constexpr SDL_Color kUiPanelBorderColor{82, 74, 66, 255};
+constexpr SDL_Color kUiDigitColor{236, 228, 214, 255};
+constexpr const char* kCounterFontPaths[] = {
+    "assets/ui.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+};
 
 // Fully assembled data used by the shared spawn path.
 struct ActorDefinition {
@@ -21,9 +45,9 @@ struct ActorDefinition {
     float skeletonStoredVelocityX = 0.0f;
 };
 
-[[nodiscard]] idlegolem::game::SpriteClip MakeClip(
-    SDL_Texture* texture, int frameCount, float frameDuration, float frameWidth,
-    float frameHeight) {
+[[nodiscard]] idlegolem::game::SpriteClip MakeClip(SDL_Texture* texture, int frameCount,
+                                                   float frameDuration, float frameWidth,
+                                                   float frameHeight) {
     return idlegolem::game::SpriteClip{
         texture,
         idlegolem::game::Animation{frameCount, frameDuration},
@@ -32,44 +56,29 @@ struct ActorDefinition {
     };
 }
 
-[[nodiscard]] ActorDefinition BuildActorDefinition(
-    const idlegolem::game::ActorKind kind,
-    const idlegolem::game::Resources& resources) {
+[[nodiscard]] ActorDefinition BuildActorDefinition(const idlegolem::game::ActorKind kind,
+                                                   const idlegolem::game::Resources& resources) {
     ActorDefinition definition{};
 
     // Translate the actor kind into visuals, movement, and optional behavior.
     switch (kind) {
         case idlegolem::game::ActorKind::Zombie:
-            definition.renderable =
-                idlegolem::game::Renderable{144.0f, 144.0f,
-                                            SDL_Color{124, 182, 110, 255},
-                                            SDL_Color{54, 70, 48, 255}};
-            definition.velocity =
-                idlegolem::game::Velocity{glm::vec2{kZombieSpeed, 0.0f}};
-            definition.animationSet.state =
-                idlegolem::game::AnimationState::Walk;
-            definition.animationSet.idle =
-                MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
-            definition.animationSet.walk =
-                MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
-            definition.animationSet.dig =
-                MakeClip(resources.zombieIdle, 6, 0.20f, 22.0f, 18.0f);
+            definition.renderable = idlegolem::game::Renderable{
+                32.0f, 32.0f, SDL_Color{124, 182, 110, 255}, SDL_Color{54, 70, 48, 255}};
+            definition.velocity = idlegolem::game::Velocity{glm::vec2{kZombieSpeed, 0.0f}};
+            definition.animationSet.state = idlegolem::game::AnimationState::Walk;
+            definition.animationSet.idle = MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
+            definition.animationSet.walk = MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
+            definition.animationSet.dig = MakeClip(resources.zombieIdle, 6, 0.20f, 22.0f, 18.0f);
             return definition;
         case idlegolem::game::ActorKind::Skeleton:
-            definition.renderable =
-                idlegolem::game::Renderable{104.0f, 144.0f,
-                                            SDL_Color{226, 222, 208, 255},
-                                            SDL_Color{86, 72, 64, 255}};
-            definition.velocity =
-                idlegolem::game::Velocity{glm::vec2{kSkeletonSpeed, 0.0f}};
-            definition.animationSet.state =
-                idlegolem::game::AnimationState::Walk;
-            definition.animationSet.idle =
-                MakeClip(resources.skeletonIdle, 6, 0.18f, 11.0f, 15.0f);
-            definition.animationSet.walk =
-                MakeClip(resources.skeletonWalk, 6, 0.14f, 13.0f, 15.0f);
-            definition.animationSet.dig =
-                MakeClip(resources.skeletonIdle, 6, 0.12f, 11.0f, 15.0f);
+            definition.renderable = idlegolem::game::Renderable{
+                32.0f, 32.0f, SDL_Color{226, 222, 208, 255}, SDL_Color{86, 72, 64, 255}};
+            definition.velocity = idlegolem::game::Velocity{glm::vec2{kSkeletonSpeed, 0.0f}};
+            definition.animationSet.state = idlegolem::game::AnimationState::Walk;
+            definition.animationSet.idle = MakeClip(resources.skeletonIdle, 6, 0.18f, 11.0f, 15.0f);
+            definition.animationSet.walk = MakeClip(resources.skeletonWalk, 6, 0.14f, 13.0f, 15.0f);
+            definition.animationSet.dig = MakeClip(resources.skeletonIdle, 6, 0.12f, 11.0f, 15.0f);
             definition.hasSkeletonBehavior = true;
             definition.skeletonStoredVelocityX = kSkeletonSpeed;
             return definition;
@@ -86,7 +95,25 @@ const engine::ApplicationConfig& Game::Config() const { return config_; }
 
 bool Game::Initialize(SDL_Renderer* renderer) {
     registry_.clear();
+    bonesThrown_ = 0;
+    counterDirty_ = true;
+
+    if (!TTF_Init()) {
+        SDL_Log("Failed to initialize SDL_ttf: %s", SDL_GetError());
+        return false;
+    }
+    ttfInitialized_ = true;
+
+    if (!LoadCounterFont()) {
+        SDL_Log("Failed to load a font for the bone counter.");
+        TTF_Quit();
+        ttfInitialized_ = false;
+        return false;
+    }
+
     resources_.LoadAssets(renderer);
+
+    RefreshCounterTexture(renderer);
 
     // Seed the scene so something is visible on startup.
     SpawnZombie(220.0f, 320.0f);
@@ -97,27 +124,111 @@ bool Game::Initialize(SDL_Renderer* renderer) {
 void Game::Shutdown() {
     // Drop entities before releasing textures referenced by their clips.
     registry_.clear();
+    DestroyCounterTexture();
+    if (counterFont_ != nullptr) {
+        TTF_CloseFont(counterFont_);
+        counterFont_ = nullptr;
+    }
     resources_.DestroyAssets();
+    if (ttfInitialized_) {
+        TTF_Quit();
+        ttfInitialized_ = false;
+    }
 }
 
-void Game::SpawnZombie(const float x, const float y) {
-    SpawnActor(ActorKind::Zombie, x, y);
+bool Game::LoadCounterFont() {
+    for (const char* path : kCounterFontPaths) {
+        TTF_Font* font = TTF_OpenFont(path, kUiCounterFontSize);
+        if (font != nullptr) {
+            counterFont_ = font;
+            return true;
+        }
+    }
+
+    SDL_Log("Bone counter font load failed. Tried %zu paths. Last error: %s",
+            std::size(kCounterFontPaths), SDL_GetError());
+    return false;
 }
 
-void Game::SpawnSkeleton(const float x, const float y) {
-    SpawnActor(ActorKind::Skeleton, x, y);
+void Game::DestroyCounterTexture() {
+    if (boneCounterTextTexture_ != nullptr) {
+        SDL_DestroyTexture(boneCounterTextTexture_);
+        boneCounterTextTexture_ = nullptr;
+    }
+
+    boneCounterTextWidth_ = 0.0f;
+    boneCounterTextHeight_ = 0.0f;
 }
+
+void Game::RefreshCounterTexture(SDL_Renderer* renderer) {
+    if (!counterDirty_ || renderer == nullptr || counterFont_ == nullptr) {
+        return;
+    }
+
+    DestroyCounterTexture();
+
+    const std::string text = std::to_string(std::max(0, bonesThrown_));
+    SDL_Surface* surface = TTF_RenderText_Blended(counterFont_, text.c_str(), 0, kUiDigitColor);
+    if (surface == nullptr) {
+        SDL_Log("Bone counter text render failed: %s", SDL_GetError());
+        return;
+    }
+
+    boneCounterTextTexture_ = SDL_CreateTextureFromSurface(renderer, surface);
+    if (boneCounterTextTexture_ == nullptr) {
+        SDL_Log("Bone counter texture creation failed: %s", SDL_GetError());
+        SDL_DestroySurface(surface);
+        return;
+    }
+
+    boneCounterTextWidth_ = static_cast<float>(surface->w);
+    boneCounterTextHeight_ = static_cast<float>(surface->h);
+    SDL_DestroySurface(surface);
+    counterDirty_ = false;
+}
+
+void Game::SpawnBone(const float targetX, const float targetY) {
+    if (resources_.bone == nullptr) {
+        SDL_Log("Bone projectile skipped: bone texture is not loaded.");
+        return;
+    }
+
+    const float groundTop = static_cast<float>(config_.windowHeight) - kGroundTopOffset;
+    const float startX = kBoneSpawnX;
+    const float startY = groundTop - kBoneRenderSize;
+    const float flightTime =
+        std::clamp(kBoneFlightMinSeconds + std::abs(targetX - startX) / kBoneFlightDistanceScale,
+                   kBoneFlightMinSeconds, kBoneFlightMaxSeconds);
+    const float gravity = 720.0f;
+    const float velocityX = (targetX - startX) / flightTime;
+    const float velocityY =
+        (targetY - startY - 0.5f * gravity * flightTime * flightTime) / flightTime;
+
+    const entt::entity entity = registry_.create();
+    registry_.emplace<Transform>(entity, Transform{startX, startY});
+    registry_.emplace<Velocity>(entity, Velocity{glm::vec2{velocityX, velocityY}});
+    registry_.emplace<Renderable>(
+        entity, Renderable{kBoneRenderSize, kBoneRenderSize, SDL_Color{255, 255, 255, 255},
+                           SDL_Color{255, 255, 255, 255}});
+    registry_.emplace<BoneProjectile>(entity);
+    ++bonesThrown_;
+    counterDirty_ = true;
+}
+
+void Game::SpawnZombie(const float x, const float y) { SpawnActor(ActorKind::Zombie, x, y); }
+
+void Game::SpawnSkeleton(const float x, const float y) { SpawnActor(ActorKind::Skeleton, x, y); }
 
 void Game::SpawnActor(const ActorKind kind, float x, float y) {
     const ActorDefinition definition = BuildActorDefinition(kind, resources_);
 
     // Clamp mouse spawns into the playable strip.
-    x = std::clamp(x, kSpawnMarginX,
-                   static_cast<float>(config_.windowWidth) -
-                       definition.renderable.width - kSpawnMarginX);
-    y = std::clamp(y, kSpawnMarginY,
-                   static_cast<float>(config_.windowHeight) -
-                       definition.renderable.height - kSpawnMarginY);
+    x = std::clamp(
+        x, kSpawnMarginX,
+        static_cast<float>(config_.windowWidth) - definition.renderable.width - kSpawnMarginX);
+    y = std::clamp(
+        y, kSpawnMarginY,
+        static_cast<float>(config_.windowHeight) - definition.renderable.height - kSpawnMarginY);
 
     const entt::entity entity = registry_.create();
 
@@ -126,18 +237,15 @@ void Game::SpawnActor(const ActorKind kind, float x, float y) {
     registry_.emplace<Transform>(entity, Transform{x, y});
     registry_.emplace<Velocity>(entity, definition.velocity);
     registry_.emplace<PatrolBounds>(
-        entity,
-        PatrolBounds{kSpawnMarginX, static_cast<float>(config_.windowWidth) -
-                                         definition.renderable.width -
-                                         kSpawnMarginX});
+        entity, PatrolBounds{kSpawnMarginX, static_cast<float>(config_.windowWidth) -
+                                                definition.renderable.width - kSpawnMarginX});
     registry_.emplace<Renderable>(entity, definition.renderable);
     registry_.emplace<AnimationSet>(entity, definition.animationSet);
 
     if (definition.hasSkeletonBehavior) {
-        registry_.emplace<SkeletonBehavior>(
-            entity,
-            SkeletonBehavior{kSkeletonDigCooldownSeconds, 0.0f,
-                             definition.skeletonStoredVelocityX});
+        registry_.emplace<SkeletonBehavior>(entity,
+                                            SkeletonBehavior{kSkeletonDigCooldownSeconds, 0.0f,
+                                                             definition.skeletonStoredVelocityX});
     }
 }
 
@@ -152,13 +260,43 @@ void Game::HandleEvent(const SDL_Event& event) {
 
     switch (event.button.button) {
         case SDL_BUTTON_LEFT:
-            SpawnZombie(spawnX, spawnY);
+            SpawnBone(spawnX, spawnY);
             break;
         case SDL_BUTTON_RIGHT:
             SpawnSkeleton(spawnX, spawnY);
             break;
         default:
             break;
+    }
+}
+
+void Game::UpdateBones(const float deltaTime) {
+    auto view = registry_.view<BoneProjectile, Transform, Velocity, Renderable>();
+    std::vector<entt::entity> expiredEntities;
+
+    // Bones spin while gravity bends the path.
+    for (const entt::entity entity : view) {
+        BoneProjectile& bone = view.get<BoneProjectile>(entity);
+        Transform& transform = view.get<Transform>(entity);
+        Velocity& velocity = view.get<Velocity>(entity);
+        const Renderable& renderable = view.get<Renderable>(entity);
+
+        transform.x += velocity.value.x * deltaTime;
+        transform.y += velocity.value.y * deltaTime;
+        velocity.value.y += bone.gravity * deltaTime;
+        bone.rotationDegrees =
+            std::fmod(bone.rotationDegrees + bone.angularVelocityDegrees * deltaTime, 360.0f);
+
+        if (transform.x + renderable.width < 0.0f ||
+            transform.x > static_cast<float>(config_.windowWidth) ||
+            transform.y > static_cast<float>(config_.windowHeight) ||
+            transform.y + renderable.height < 0.0f) {
+            expiredEntities.push_back(entity);
+        }
+    }
+
+    if (!expiredEntities.empty()) {
+        registry_.destroy(expiredEntities.begin(), expiredEntities.end());
     }
 }
 
@@ -190,8 +328,7 @@ void Game::UpdateSkeletons(const float deltaTime) {
         behavior.digCooldownRemaining -= deltaTime;
         if (behavior.digCooldownRemaining <= 0.0f) {
             // Preserve the current direction before stopping to dig.
-            behavior.storedVelocityX =
-                velocity.value.x == 0.0f ? kSkeletonSpeed : velocity.value.x;
+            behavior.storedVelocityX = velocity.value.x == 0.0f ? kSkeletonSpeed : velocity.value.x;
             velocity.value.x = 0.0f;
             behavior.digDurationRemaining = kSkeletonDigDurationSeconds;
             behavior.digCooldownRemaining = 0.0f;
@@ -234,8 +371,7 @@ void Game::UpdatePatrol(const float deltaTime) {
 }
 
 void Game::UpdateLocomotion() {
-    auto view =
-        registry_.view<Velocity, AnimationSet>(entt::exclude<SkeletonBehavior>);
+    auto view = registry_.view<Velocity, AnimationSet>(entt::exclude<SkeletonBehavior>);
 
     // Most actors use a simple idle/walk rule based on horizontal speed.
     for (const entt::entity entity : view) {
@@ -259,15 +395,70 @@ void Game::UpdateAnimation(const float deltaTime) {
 }
 
 void Game::Update(const float deltaTime) {
-    const float clampedDelta =
-        std::clamp(deltaTime, 0.0F, config_.maxDeltaSeconds);
+    const float clampedDelta = std::clamp(deltaTime, 0.0F, config_.maxDeltaSeconds);
 
     // Order matters: behavior changes velocity, movement applies it, then
     // animation state and clip playback catch up.
+    UpdateBones(clampedDelta);
     UpdateSkeletons(clampedDelta);
     UpdatePatrol(clampedDelta);
     UpdateLocomotion();
     UpdateAnimation(clampedDelta);
+}
+
+void Game::RenderBones(SDL_Renderer* renderer) const {
+    if (resources_.bone == nullptr) {
+        return;
+    }
+
+    auto view = registry_.view<BoneProjectile, Transform, Renderable>();
+    const SDL_FRect src{0.0f, 0.0f, kBoneSourceSize, kBoneSourceSize};
+
+    // Draw the bone with rotation around its center.
+    for (const entt::entity entity : view) {
+        const BoneProjectile& bone = view.get<BoneProjectile>(entity);
+        const Transform& transform = view.get<Transform>(entity);
+        const Renderable& renderable = view.get<Renderable>(entity);
+        const SDL_FRect dst{transform.x, transform.y, renderable.width, renderable.height};
+        const SDL_FPoint center{renderable.width * 0.5f, renderable.height * 0.5f};
+        SDL_RenderTextureRotated(renderer, resources_.bone, &src, &dst, bone.rotationDegrees,
+                                 &center, SDL_FLIP_NONE);
+    }
+}
+
+void Game::RenderBoneCounter(SDL_Renderer* renderer) const {
+    Game* game = const_cast<Game*>(this);
+    game->RefreshCounterTexture(renderer);
+
+    const float textWidth = boneCounterTextTexture_ != nullptr ? boneCounterTextWidth_ : 0.0f;
+    const float textHeight = boneCounterTextTexture_ != nullptr ? boneCounterTextHeight_ : 0.0f;
+    const float panelWidth = kUiPadding * 2.0f + kUiIconSize + kUiTextGap + textWidth;
+    const float panelHeight = kUiPadding * 2.0f + kUiIconSize;
+    const SDL_FRect panel{12.0f, 12.0f, panelWidth, panelHeight};
+
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, kUiPanelColor.r, kUiPanelColor.g, kUiPanelColor.b,
+                           kUiPanelColor.a);
+    SDL_RenderFillRect(renderer, &panel);
+    SDL_SetRenderDrawColor(renderer, kUiPanelBorderColor.r, kUiPanelBorderColor.g,
+                           kUiPanelBorderColor.b, kUiPanelBorderColor.a);
+    SDL_RenderRect(renderer, &panel);
+
+    if (resources_.bone != nullptr) {
+        const SDL_FRect src{0.0f, 0.0f, kBoneSourceSize, kBoneSourceSize};
+        const SDL_FRect dst{panel.x + kUiPadding, panel.y + kUiPadding, kUiIconSize, kUiIconSize};
+        SDL_RenderTexture(renderer, resources_.bone, &src, &dst);
+    }
+
+    if (boneCounterTextTexture_ != nullptr) {
+        const SDL_FRect textRect{
+            panel.x + kUiPadding + kUiIconSize + kUiTextGap,
+            panel.y + kUiPadding + (kUiIconSize - textHeight) * 0.5f,
+            textWidth,
+            textHeight,
+        };
+        SDL_RenderTexture(renderer, boneCounterTextTexture_, nullptr, &textRect);
+    }
 }
 
 void Game::RenderActors(SDL_Renderer* renderer) const {
@@ -280,8 +471,7 @@ void Game::RenderActors(SDL_Renderer* renderer) const {
         const AnimationSet& animationSet = view.get<AnimationSet>(entity);
         const SpriteClip& clip = animationSet.CurrentClip();
 
-        if (clip.texture == nullptr || clip.frameWidth <= 0.0f ||
-            clip.frameHeight <= 0.0f) {
+        if (clip.texture == nullptr || clip.frameWidth <= 0.0f || clip.frameHeight <= 0.0f) {
             continue;
         }
 
@@ -292,8 +482,7 @@ void Game::RenderActors(SDL_Renderer* renderer) const {
             clip.frameWidth,
             clip.frameHeight,
         };
-        const SDL_FRect dst{transform.x, transform.y, renderable.width,
-                            renderable.height};
+        const SDL_FRect dst{transform.x, transform.y, renderable.width, renderable.height};
         SDL_RenderTexture(renderer, clip.texture, &src, &dst);
     }
 }
@@ -304,8 +493,7 @@ void Game::Render(SDL_Renderer* renderer) const {
     SDL_RenderClear(renderer);
 
     SDL_SetRenderDrawColor(renderer, 42, 38, 34, 255);
-    const SDL_FRect ground{0.0f,
-                           static_cast<float>(config_.windowHeight) - 84.0f,
+    const SDL_FRect ground{0.0f, static_cast<float>(config_.windowHeight) - 84.0f,
                            static_cast<float>(config_.windowWidth), 84.0f};
     SDL_RenderFillRect(renderer, &ground);
 
@@ -319,6 +507,8 @@ void Game::Render(SDL_Renderer* renderer) const {
     SDL_RenderFillRect(renderer, &groundLine);
 
     RenderActors(renderer);
+    RenderBones(renderer);
+    RenderBoneCounter(renderer);
 }
 
 }  // namespace idlegolem::game

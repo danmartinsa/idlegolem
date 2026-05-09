@@ -14,8 +14,8 @@ bool Application::Run(game::Game& game) const {
     }
 
     const ApplicationConfig& config = game.Config();
-    SDL_Window* window = SDL_CreateWindow(config.windowTitle, config.windowWidth,
-                                          config.windowHeight, 0);
+    SDL_Window* window =
+        SDL_CreateWindow(config.windowTitle, config.windowWidth, config.windowHeight, 0);
     if (window == nullptr) {
         SDL_Log("Failed to create window: %s", SDL_GetError());
         SDL_Quit();
@@ -52,8 +52,7 @@ bool Application::Run(game::Game& game) const {
         }
 
         const Uint64 currentTicks = SDL_GetTicks();
-        const float deltaTime =
-            static_cast<float>(currentTicks - lastTicks) / 1000.0F;
+        const float deltaTime = static_cast<float>(currentTicks - lastTicks) / 1000.0F;
         lastTicks = currentTicks;
 
         // Game code updates simulation and records draw calls; engine presents.

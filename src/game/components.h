@@ -133,4 +133,11 @@ struct SkeletonBehavior {
     float storedVelocityX = -32.0f;
 };
 
+// Spinning projectile state for thrown bones.
+struct BoneProjectile {
+    float gravity = 720.0f;
+    float rotationDegrees = 0.0f;
+    float angularVelocityDegrees = 540.0f;
+};
+
 }  // namespace idlegolem::game

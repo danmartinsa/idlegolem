@@ -11,6 +11,7 @@ constexpr const char* kSkeletonIdlePath =
     "assets/pppack/Enemies/Zombie_Small/Zombie_Small_Side-left_Idle-Sheet6.png";
 constexpr const char* kSkeletonWalkPath =
     "assets/pppack/Enemies/Zombie_Small/Zombie_Small_Side-left_Walk-Sheet6.png";
+constexpr const char* kBonePath = "assets/bone.png";
 
 }  // namespace
 
@@ -29,10 +30,10 @@ void Resources::DestroyAssets() {
     zombieWalk = nullptr;
     skeletonIdle = nullptr;
     skeletonWalk = nullptr;
+    bone = nullptr;
 }
 
-SDL_Texture* Resources::LoadTexture(SDL_Renderer* renderer,
-                                    const char* path) const {
+SDL_Texture* Resources::LoadTexture(SDL_Renderer* renderer, const char* path) const {
     if (renderer == nullptr) {
         SDL_Log("LoadTexture failed for %s: renderer is null", path);
         return nullptr;
@@ -48,8 +49,7 @@ SDL_Texture* Resources::LoadTexture(SDL_Renderer* renderer,
     SDL_DestroySurface(surface);
 
     if (texture == nullptr) {
-        SDL_Log("SDL_CreateTextureFromSurface failed for %s: %s", path,
-                SDL_GetError());
+        SDL_Log("SDL_CreateTextureFromSurface failed for %s: %s", path, SDL_GetError());
         return nullptr;
     }
 
@@ -80,6 +80,11 @@ void Resources::LoadAssets(SDL_Renderer* renderer) {
     skeletonWalk = LoadTexture(renderer, kSkeletonWalkPath);
     if (skeletonWalk != nullptr) {
         textures.push_back(skeletonWalk);
+    }
+
+    bone = LoadTexture(renderer, kBonePath);
+    if (bone != nullptr) {
+        textures.push_back(bone);
     }
 }
 
