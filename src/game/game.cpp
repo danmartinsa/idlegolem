@@ -276,8 +276,7 @@ void Game::UpdateBones(const float deltaTime) {
 
         if (transform.x + renderable.width < 0.0f ||
             transform.x > static_cast<float>(config_.windowWidth) ||
-            transform.y > static_cast<float>(config_.windowHeight) ||
-            transform.y + renderable.height < 0.0f) {
+            transform.y > static_cast<float>(config_.windowHeight)) {
             expiredEntities.push_back(entity);
         }
     }
