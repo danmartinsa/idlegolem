@@ -5,11 +5,11 @@
 namespace idlegolem::engine {
 
 struct ApplicationConfig {
-    //default values
-    // int windowWidth = 1280;
-    // int windowHeight = 720;
-    // float maxDeltaSeconds = 0.05f;
-    // const char* windowTitle = "Idle Golem";
+    // default values
+    //  int windowWidth = 1280;
+    //  int windowHeight = 720;
+    //  float maxDeltaSeconds = 0.05f;
+    //  const char* windowTitle = "Idle Golem";
     int windowWidth;
     int windowHeight;
     float maxDeltaSeconds;
