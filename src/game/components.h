@@ -60,6 +60,11 @@ struct Velocity {
     glm::vec2 value{0.0f, 0.0f};
 };
 
+// Persistent horizontal facing for sprite flips.
+struct Facing {
+    bool isLeft = true;
+};
+
 // Left and right bounds for simple patrol movement.
 struct PatrolBounds {
     float minX = 0.0f;

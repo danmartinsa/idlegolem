@@ -243,6 +243,7 @@ void Game::SpawnActor(const ActorKind kind, float x, float y) {
     registry_.emplace<Actor>(entity, kind);
     registry_.emplace<Transform>(entity, Transform{x, y});
     registry_.emplace<Velocity>(entity, definition.velocity);
+    registry_.emplace<Facing>(entity, Facing{definition.velocity.value.x <= 0.0f});
     registry_.emplace<PatrolBounds>(
         entity, PatrolBounds{kSpawnMarginX, static_cast<float>(config_.windowWidth) -
                                                 definition.renderable.width - kSpawnMarginX});
@@ -331,12 +332,13 @@ void Game::UpdateSkeletons(const float deltaTime) {
 }
 
 void Game::UpdatePatrol(const float deltaTime) {
-    auto view = registry_.view<Transform, Velocity, PatrolBounds>();
+    auto view = registry_.view<Transform, Velocity, Facing, PatrolBounds>();
 
     // Apply movement, then flip direction when patrol bounds are hit.
     for (const entt::entity entity : view) {
         Transform& transform = view.get<Transform>(entity);
         Velocity& velocity = view.get<Velocity>(entity);
+        Facing& facing = view.get<Facing>(entity);
         const PatrolBounds& patrolBounds = view.get<PatrolBounds>(entity);
 
         transform.x += velocity.value.x * deltaTime;
@@ -352,6 +354,12 @@ void Game::UpdatePatrol(const float deltaTime) {
             if (velocity.value.x > 0.0f) {
                 velocity.value.x = -velocity.value.x;
             }
+        }
+
+        if (velocity.value.x < 0.0f) {
+            facing.isLeft = true;
+        } else if (velocity.value.x > 0.0f) {
+            facing.isLeft = false;
         }
     }
 }
@@ -381,13 +389,14 @@ void Game::UpdateAnimation(const float deltaTime) {
 }
 
 void Game::RenderActors(SDL_Renderer* renderer) const {
-    auto view = registry_.view<Actor, Transform, Renderable, AnimationSet>();
+    auto view = registry_.view<Actor, Transform, Renderable, AnimationSet, Facing>();
 
     // Resolve the active clip, sample its current frame, and draw it.
     for (const entt::entity entity : view) {
         const Transform& transform = view.get<Transform>(entity);
         const Renderable& renderable = view.get<Renderable>(entity);
         const AnimationSet& animationSet = view.get<AnimationSet>(entity);
+        const Facing& facing = view.get<Facing>(entity);
         const SpriteClip& clip = animationSet.CurrentClip();
 
         if (clip.texture == nullptr || clip.frameWidth <= 0.0f || clip.frameHeight <= 0.0f) {
@@ -402,7 +411,8 @@ void Game::RenderActors(SDL_Renderer* renderer) const {
             clip.frameHeight,
         };
         const SDL_FRect dst{transform.x, transform.y, renderable.width, renderable.height};
-        SDL_RenderTexture(renderer, clip.texture, &src, &dst);
+        SDL_RenderTextureRotated(renderer, clip.texture, &src, &dst, 0.0, nullptr,
+                                 facing.isLeft ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
     }
 }
 
