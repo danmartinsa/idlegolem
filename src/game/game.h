@@ -39,37 +39,44 @@ class Game {
     void Render(SDL_Renderer* renderer) const;
 
    private:
-    // Convenience wrappers over the shared spawn path.
+    // Input and spawning.
     void SpawnBone(float targetX, float targetY);
     void SpawnZombie(float x, float y);
     void SpawnSkeleton(float x, float y);
     void SpawnActor(ActorKind kind, float x, float y);
 
-    // Ordered simulation stages.
+    // Simulation.
     void UpdateBones(float deltaTime);
     void UpdateSkeletons(float deltaTime);
     void UpdatePatrol(float deltaTime);
     void UpdateLocomotion();
     void UpdateAnimation(float deltaTime);
 
-    // Draw all actor sprites after the scene background.
-    bool LoadCounterFont();
-    void DestroyCounterTexture();
-    void RefreshCounterTexture(SDL_Renderer* renderer);
-    void RenderBoneCounter(SDL_Renderer* renderer) const;
-    void RenderBones(SDL_Renderer* renderer) const;
+    // Rendering.
     void RenderActors(SDL_Renderer* renderer) const;
+    void RenderBones(SDL_Renderer* renderer) const;
+    void RenderBoneCounter(SDL_Renderer* renderer) const;
 
+    // UI text resources.
+    bool LoadCounterFont();
+    void RefreshCounterTexture(SDL_Renderer* renderer);
+    void DestroyCounterTexture();
+
+    // Core state.
+    entt::registry registry_{};
     engine::ApplicationConfig config_{};
     Resources resources_{};
-    entt::registry registry_{};
-    int bonesThrown_ = 0;
-    bool counterDirty_ = true;
-    bool ttfInitialized_ = false;
+
+    // Counter UI state.
     TTF_Font* counterFont_ = nullptr;
     SDL_Texture* boneCounterTextTexture_ = nullptr;
     float boneCounterTextWidth_ = 0.0f;
     float boneCounterTextHeight_ = 0.0f;
+
+    // Gameplay state.
+    int bonesThrown_ = 0;
+    bool counterDirty_ = true;
+    bool ttfInitialized_ = false;
 };
 
 }  // namespace idlegolem::game

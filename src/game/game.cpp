@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <string>
 #include <vector>
 
@@ -112,7 +111,6 @@ bool Game::Initialize(SDL_Renderer* renderer) {
     }
 
     resources_.LoadAssets(renderer);
-
     RefreshCounterTexture(renderer);
 
     // Seed the scene so something is visible on startup.
@@ -125,66 +123,75 @@ void Game::Shutdown() {
     // Drop entities before releasing textures referenced by their clips.
     registry_.clear();
     DestroyCounterTexture();
+
     if (counterFont_ != nullptr) {
         TTF_CloseFont(counterFont_);
         counterFont_ = nullptr;
     }
+
     resources_.DestroyAssets();
+
     if (ttfInitialized_) {
         TTF_Quit();
         ttfInitialized_ = false;
     }
 }
 
-bool Game::LoadCounterFont() {
-    for (const char* path : kCounterFontPaths) {
-        TTF_Font* font = TTF_OpenFont(path, kUiCounterFontSize);
-        if (font != nullptr) {
-            counterFont_ = font;
-            return true;
-        }
+void Game::HandleEvent(const SDL_Event& event) {
+    if (event.type != SDL_EVENT_MOUSE_BUTTON_DOWN) {
+        return;
     }
 
-    SDL_Log("Bone counter font load failed. Tried %zu paths. Last error: %s",
-            std::size(kCounterFontPaths), SDL_GetError());
-    return false;
+    // Mouse buttons act as quick spawn controls.
+    const float spawnX = event.button.x;
+    const float spawnY = event.button.y;
+
+    switch (event.button.button) {
+        case SDL_BUTTON_LEFT:
+            SpawnBone(spawnX, spawnY);
+            break;
+        case SDL_BUTTON_RIGHT:
+            SpawnSkeleton(spawnX, spawnY);
+            break;
+        default:
+            break;
+    }
 }
 
-void Game::DestroyCounterTexture() {
-    if (boneCounterTextTexture_ != nullptr) {
-        SDL_DestroyTexture(boneCounterTextTexture_);
-        boneCounterTextTexture_ = nullptr;
-    }
+void Game::Update(const float deltaTime) {
+    const float clampedDelta = std::clamp(deltaTime, 0.0F, config_.maxDeltaSeconds);
 
-    boneCounterTextWidth_ = 0.0f;
-    boneCounterTextHeight_ = 0.0f;
+    // Order matters: behavior changes velocity, movement applies it, then
+    // animation state and clip playback catch up.
+    UpdateBones(clampedDelta);
+    UpdateSkeletons(clampedDelta);
+    UpdatePatrol(clampedDelta);
+    UpdateLocomotion();
+    UpdateAnimation(clampedDelta);
 }
 
-void Game::RefreshCounterTexture(SDL_Renderer* renderer) {
-    if (!counterDirty_ || renderer == nullptr || counterFont_ == nullptr) {
-        return;
-    }
+void Game::Render(SDL_Renderer* renderer) const {
+    // Draw a simple background first, then render the actors on top.
+    SDL_SetRenderDrawColor(renderer, 18, 18, 24, 255);
+    SDL_RenderClear(renderer);
 
-    DestroyCounterTexture();
+    SDL_SetRenderDrawColor(renderer, 42, 38, 34, 255);
+    const SDL_FRect ground{0.0f, static_cast<float>(config_.windowHeight) - 84.0f,
+                           static_cast<float>(config_.windowWidth), 84.0f};
+    SDL_RenderFillRect(renderer, &ground);
 
-    const std::string text = std::to_string(std::max(0, bonesThrown_));
-    SDL_Surface* surface = TTF_RenderText_Blended(counterFont_, text.c_str(), 0, kUiDigitColor);
-    if (surface == nullptr) {
-        SDL_Log("Bone counter text render failed: %s", SDL_GetError());
-        return;
-    }
+    SDL_SetRenderDrawColor(renderer, 76, 70, 62, 255);
+    const SDL_FRect groundLine{
+        0.0f,
+        static_cast<float>(config_.windowHeight) - 86.0f,
+        static_cast<float>(config_.windowWidth),
+        4.0f,
+    };
+    SDL_RenderFillRect(renderer, &groundLine);
 
-    boneCounterTextTexture_ = SDL_CreateTextureFromSurface(renderer, surface);
-    if (boneCounterTextTexture_ == nullptr) {
-        SDL_Log("Bone counter texture creation failed: %s", SDL_GetError());
-        SDL_DestroySurface(surface);
-        return;
-    }
-
-    boneCounterTextWidth_ = static_cast<float>(surface->w);
-    boneCounterTextHeight_ = static_cast<float>(surface->h);
-    SDL_DestroySurface(surface);
-    counterDirty_ = false;
+    RenderActors(renderer);
+    RenderBones(renderer);
+    RenderBoneCounter(renderer);
 }
 
 void Game::SpawnBone(const float targetX, const float targetY) {
@@ -246,27 +253,6 @@ void Game::SpawnActor(const ActorKind kind, float x, float y) {
         registry_.emplace<SkeletonBehavior>(entity,
                                             SkeletonBehavior{kSkeletonDigCooldownSeconds, 0.0f,
                                                              definition.skeletonStoredVelocityX});
-    }
-}
-
-void Game::HandleEvent(const SDL_Event& event) {
-    if (event.type != SDL_EVENT_MOUSE_BUTTON_DOWN) {
-        return;
-    }
-
-    // Mouse buttons act as quick spawn controls.
-    const float spawnX = event.button.x;
-    const float spawnY = event.button.y;
-
-    switch (event.button.button) {
-        case SDL_BUTTON_LEFT:
-            SpawnBone(spawnX, spawnY);
-            break;
-        case SDL_BUTTON_RIGHT:
-            SpawnSkeleton(spawnX, spawnY);
-            break;
-        default:
-            break;
     }
 }
 
@@ -394,16 +380,30 @@ void Game::UpdateAnimation(const float deltaTime) {
     }
 }
 
-void Game::Update(const float deltaTime) {
-    const float clampedDelta = std::clamp(deltaTime, 0.0F, config_.maxDeltaSeconds);
+void Game::RenderActors(SDL_Renderer* renderer) const {
+    auto view = registry_.view<Actor, Transform, Renderable, AnimationSet>();
 
-    // Order matters: behavior changes velocity, movement applies it, then
-    // animation state and clip playback catch up.
-    UpdateBones(clampedDelta);
-    UpdateSkeletons(clampedDelta);
-    UpdatePatrol(clampedDelta);
-    UpdateLocomotion();
-    UpdateAnimation(clampedDelta);
+    // Resolve the active clip, sample its current frame, and draw it.
+    for (const entt::entity entity : view) {
+        const Transform& transform = view.get<Transform>(entity);
+        const Renderable& renderable = view.get<Renderable>(entity);
+        const AnimationSet& animationSet = view.get<AnimationSet>(entity);
+        const SpriteClip& clip = animationSet.CurrentClip();
+
+        if (clip.texture == nullptr || clip.frameWidth <= 0.0f || clip.frameHeight <= 0.0f) {
+            continue;
+        }
+
+        // Read one frame from the sheet and stretch it into world space.
+        const SDL_FRect src{
+            static_cast<float>(clip.animation.CurrentFrame()) * clip.frameWidth,
+            0.0f,
+            clip.frameWidth,
+            clip.frameHeight,
+        };
+        const SDL_FRect dst{transform.x, transform.y, renderable.width, renderable.height};
+        SDL_RenderTexture(renderer, clip.texture, &src, &dst);
+    }
 }
 
 void Game::RenderBones(SDL_Renderer* renderer) const {
@@ -461,54 +461,55 @@ void Game::RenderBoneCounter(SDL_Renderer* renderer) const {
     }
 }
 
-void Game::RenderActors(SDL_Renderer* renderer) const {
-    auto view = registry_.view<Actor, Transform, Renderable, AnimationSet>();
-
-    // Resolve the active clip, sample its current frame, and draw it.
-    for (const entt::entity entity : view) {
-        const Transform& transform = view.get<Transform>(entity);
-        const Renderable& renderable = view.get<Renderable>(entity);
-        const AnimationSet& animationSet = view.get<AnimationSet>(entity);
-        const SpriteClip& clip = animationSet.CurrentClip();
-
-        if (clip.texture == nullptr || clip.frameWidth <= 0.0f || clip.frameHeight <= 0.0f) {
-            continue;
+bool Game::LoadCounterFont() {
+    for (const char* path : kCounterFontPaths) {
+        TTF_Font* font = TTF_OpenFont(path, kUiCounterFontSize);
+        if (font != nullptr) {
+            counterFont_ = font;
+            return true;
         }
-
-        // Read one frame from the sheet and stretch it into world space.
-        const SDL_FRect src{
-            static_cast<float>(clip.animation.CurrentFrame()) * clip.frameWidth,
-            0.0f,
-            clip.frameWidth,
-            clip.frameHeight,
-        };
-        const SDL_FRect dst{transform.x, transform.y, renderable.width, renderable.height};
-        SDL_RenderTexture(renderer, clip.texture, &src, &dst);
     }
+
+    SDL_Log("Bone counter font load failed. Tried %zu paths. Last error: %s",
+            std::size(kCounterFontPaths), SDL_GetError());
+    return false;
 }
 
-void Game::Render(SDL_Renderer* renderer) const {
-    // Draw a simple background first, then render the actors on top.
-    SDL_SetRenderDrawColor(renderer, 18, 18, 24, 255);
-    SDL_RenderClear(renderer);
+void Game::RefreshCounterTexture(SDL_Renderer* renderer) {
+    if (!counterDirty_ || renderer == nullptr || counterFont_ == nullptr) {
+        return;
+    }
 
-    SDL_SetRenderDrawColor(renderer, 42, 38, 34, 255);
-    const SDL_FRect ground{0.0f, static_cast<float>(config_.windowHeight) - 84.0f,
-                           static_cast<float>(config_.windowWidth), 84.0f};
-    SDL_RenderFillRect(renderer, &ground);
+    DestroyCounterTexture();
 
-    SDL_SetRenderDrawColor(renderer, 76, 70, 62, 255);
-    const SDL_FRect groundLine{
-        0.0f,
-        static_cast<float>(config_.windowHeight) - 86.0f,
-        static_cast<float>(config_.windowWidth),
-        4.0f,
-    };
-    SDL_RenderFillRect(renderer, &groundLine);
+    const std::string text = std::to_string(std::max(0, bonesThrown_));
+    SDL_Surface* surface = TTF_RenderText_Blended(counterFont_, text.c_str(), 0, kUiDigitColor);
+    if (surface == nullptr) {
+        SDL_Log("Bone counter text render failed: %s", SDL_GetError());
+        return;
+    }
 
-    RenderActors(renderer);
-    RenderBones(renderer);
-    RenderBoneCounter(renderer);
+    boneCounterTextTexture_ = SDL_CreateTextureFromSurface(renderer, surface);
+    if (boneCounterTextTexture_ == nullptr) {
+        SDL_Log("Bone counter texture creation failed: %s", SDL_GetError());
+        SDL_DestroySurface(surface);
+        return;
+    }
+
+    boneCounterTextWidth_ = static_cast<float>(surface->w);
+    boneCounterTextHeight_ = static_cast<float>(surface->h);
+    SDL_DestroySurface(surface);
+    counterDirty_ = false;
+}
+
+void Game::DestroyCounterTexture() {
+    if (boneCounterTextTexture_ != nullptr) {
+        SDL_DestroyTexture(boneCounterTextTexture_);
+        boneCounterTextTexture_ = nullptr;
+    }
+
+    boneCounterTextWidth_ = 0.0f;
+    boneCounterTextHeight_ = 0.0f;
 }
 
 }  // namespace idlegolem::game
