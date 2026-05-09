@@ -4,6 +4,18 @@
 
 namespace idlegolem::engine {
 
+struct ApplicationConfig {
+    //default values
+    // int windowWidth = 1280;
+    // int windowHeight = 720;
+    // float maxDeltaSeconds = 0.05f;
+    // const char* windowTitle = "Idle Golem";
+    int windowWidth;
+    int windowHeight;
+    float maxDeltaSeconds;
+    const char* windowTitle;
+};
+
 // Engine-side contract for any game run by Application.
 class GameInterface {
    public:
@@ -16,6 +28,7 @@ class GameInterface {
     virtual void Update(float deltaTime) = 0;
     virtual void Render(SDL_Renderer* renderer) const = 0;
 };
+
 // Engine-facing application shell. Handles SDL setup, the frame loop, and
 // teardown without owning game rules.
 class Application {
@@ -23,4 +36,5 @@ class Application {
     // Run one game instance through the SDL application lifecycle.
     [[nodiscard]] bool Run(GameInterface& game) const;
 };
-}
+
+}  // namespace idlegolem::engine

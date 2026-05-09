@@ -21,7 +21,7 @@ bool Application::Run(GameInterface& game) const {
     }
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
-    if (renderer == nullptr) {
+   V if (renderer == nullptr) {
         SDL_Log("Failed to create renderer: %s", SDL_GetError());
         SDL_DestroyWindow(window);
         SDL_Quit();
