@@ -5,14 +5,13 @@
 
 #include <entt/entt.hpp>
 
-#include "engine/application_config.h"
-#include "engine/game_interface.h"
+#include "engine/application.h"
 #include "game/components.h"
-#include "game/resources.h"
+#include "game/resources/resources.h"
 
 namespace idlegolem::game {
 
-// Concrete game layer. Owns ECS state, resources, simulation, and rendering.
+// Game layer, owns ECS, resources, simulation and rendering.
 class Game : public engine::GameInterface {
    public:
     Game();
@@ -40,36 +39,23 @@ class Game : public engine::GameInterface {
     void Render(SDL_Renderer* renderer) const override;
 
    private:
-    // Input and spawning.
-    void SpawnBone(float targetX, float targetY);
+    // Input and Spawn
     void SpawnZombie(float x, float y);
-    void SpawnSkeleton(float x, float y);
-    void SpawnWorker(WorkerRole role, float x, float y);
+    void SpawnActor(ActorKind kind, float x, float y);
 
-    // Simulation.
-    void UpdateBones(float deltaTime);
-    void UpdateWorkerDigging(float deltaTime);
-    void UpdatePatrol(float deltaTime);
-    void UpdateLocomotion();
+    // Simulation
     void UpdateAnimation(float deltaTime);
 
-    // Rendering.
-    void RenderWorkers(SDL_Renderer* renderer) const;
-    void RenderBones(SDL_Renderer* renderer) const;
-    void RenderBoneCounter(SDL_Renderer* renderer) const;
+    // Rendering
+    void RenderActors(SDL_Renderer* renderer) const;
 
-    // UI text resources.
-    bool LoadCounterFont();
-    void RefreshCounterTexture(SDL_Renderer* renderer);
-    void DestroyCounterTexture();
-
-    // Core state.
+    // Core state
     entt::registry registry_{};
     engine::ApplicationConfig config_{};
     Resources resources_{};
 
-    // Counter UI state.
-    TTF_Font* counterFont_ = nullptr;
+    // Counter UI State
+    TTF_Font* counterFount_ = nullptr;
     SDL_Texture* boneCounterTextTexture_ = nullptr;
     float boneCounterTextWidth_ = 0.0f;
     float boneCounterTextHeight_ = 0.0f;
