@@ -5,13 +5,14 @@
 
 #include <entt/entt.hpp>
 
-#include "engine/application.h"
+#include "engine/application_config.h"
+#include "engine/game_interface.h"
 #include "game/components.h"
-#include "game/resources/resources.h"
+#include "game/resources.h"
 
 namespace idlegolem::game {
 
-// Game layer, owns ECS, resources, simulation and rendering.
+// Concrete game layer. Owns ECS state, resources, simulation, and rendering.
 class Game : public engine::GameInterface {
    public:
     Game();
@@ -39,23 +40,36 @@ class Game : public engine::GameInterface {
     void Render(SDL_Renderer* renderer) const override;
 
    private:
-    // Input and Spawn
+    // Input and spawning.
+    void SpawnBone(float targetX, float targetY);
     void SpawnZombie(float x, float y);
-    void SpawnActor(ActorKind kind, float x, float y);
+    void SpawnSkeleton(float x, float y);
+    void SpawnWorker(WorkerRole role, float x, float y);
 
-    // Simulation
+    // Simulation.
+    void UpdateBones(float deltaTime);
+    void UpdateWorkerDigging(float deltaTime);
+    void UpdatePatrol(float deltaTime);
+    void UpdateLocomotion();
     void UpdateAnimation(float deltaTime);
 
-    //Rendering
-    void RenderActors(SDL_Renderer* renderer) const;
+    // Rendering.
+    void RenderWorkers(SDL_Renderer* renderer) const;
+    void RenderBones(SDL_Renderer* renderer) const;
+    void RenderBoneCounter(SDL_Renderer* renderer) const;
 
-    // Core state
+    // UI text resources.
+    bool LoadCounterFont();
+    void RefreshCounterTexture(SDL_Renderer* renderer);
+    void DestroyCounterTexture();
+
+    // Core state.
     entt::registry registry_{};
     engine::ApplicationConfig config_{};
     Resources resources_{};
 
-    // Counter UI State
-    TTF_Font* counterFount_ = nullptr;
+    // Counter UI state.
+    TTF_Font* counterFont_ = nullptr;
     SDL_Texture* boneCounterTextTexture_ = nullptr;
     float boneCounterTextWidth_ = 0.0f;
     float boneCounterTextHeight_ = 0.0f;
@@ -64,7 +78,6 @@ class Game : public engine::GameInterface {
     int bonesThrown_ = 0;
     bool counterDirty_ = true;
     bool ttfInitialized_ = false;
-
 };
 
 }  // namespace idlegolem::game
