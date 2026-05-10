@@ -25,6 +25,10 @@ constexpr float kUiPadding = 16.0f;
 constexpr float kUiIconSize = 24.0f;
 constexpr float kUiTextGap = 12.0f;
 constexpr float kUiCounterFontSize = 20.0f;
+constexpr int kWindowWidth = 1280;
+constexpr int kWindowHeight = 720;
+constexpr float kMaxDeltaSeconds = 0.05f;
+constexpr const char* kWindowTitle = "Idle Golem";
 constexpr SDL_Color kUiPanelColor{22, 20, 18, 220};
 constexpr SDL_Color kUiPanelBorderColor{82, 74, 66, 255};
 constexpr SDL_Color kUiDigitColor{236, 228, 214, 255};
@@ -35,19 +39,19 @@ constexpr const char* kCounterFontPaths[] = {
     "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
 };
 
-// Fully assembled data used by the shared spawn path.
-struct ActorDefinition {
+// Fully assembled data used by the shared worker spawn path.
+struct WorkerDefinition {
     idlegolem::game::Renderable renderable;
     idlegolem::game::Velocity velocity;
-    idlegolem::game::AnimationSet animationSet;
-    bool hasSkeletonBehavior = false;
-    float skeletonStoredVelocityX = 0.0f;
+    idlegolem::game::Sprite sprite;
+    bool hasDigBehavior = false;
+    float storedVelocityX = 0.0f;
 };
 
-[[nodiscard]] idlegolem::game::SpriteClip MakeClip(SDL_Texture* texture, int frameCount,
-                                                   float frameDuration, float frameWidth,
-                                                   float frameHeight) {
-    return idlegolem::game::SpriteClip{
+[[nodiscard]] idlegolem::game::AnimationClip MakeClip(SDL_Texture* texture, int frameCount,
+                                                      float frameDuration, float frameWidth,
+                                                      float frameHeight) {
+    return idlegolem::game::AnimationClip{
         texture,
         idlegolem::game::Animation{frameCount, frameDuration},
         frameWidth,
@@ -55,31 +59,31 @@ struct ActorDefinition {
     };
 }
 
-[[nodiscard]] ActorDefinition BuildActorDefinition(const idlegolem::game::ActorKind kind,
-                                                   const idlegolem::game::Resources& resources) {
-    ActorDefinition definition{};
+[[nodiscard]] WorkerDefinition BuildWorkerDefinition(const idlegolem::game::WorkerRole role,
+                                                     const idlegolem::game::Resources& resources) {
+    WorkerDefinition definition{};
 
-    // Translate the actor kind into visuals, movement, and optional behavior.
-    switch (kind) {
-        case idlegolem::game::ActorKind::Zombie:
+    // Translate the worker role into visuals, movement, and optional behavior.
+    switch (role) {
+        case idlegolem::game::WorkerRole::Zombie:
             definition.renderable = idlegolem::game::Renderable{
                 32.0f, 32.0f, SDL_Color{124, 182, 110, 255}, SDL_Color{54, 70, 48, 255}};
             definition.velocity = idlegolem::game::Velocity{glm::vec2{kZombieSpeed, 0.0f}};
-            definition.animationSet.state = idlegolem::game::AnimationState::Walk;
-            definition.animationSet.idle = MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
-            definition.animationSet.walk = MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
-            definition.animationSet.dig = MakeClip(resources.zombieIdle, 6, 0.20f, 22.0f, 18.0f);
+            definition.sprite.state = idlegolem::game::AnimationState::Walk;
+            definition.sprite.idle = MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
+            definition.sprite.walk = MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
+            definition.sprite.dig = MakeClip(resources.zombieIdle, 6, 0.20f, 22.0f, 18.0f);
             return definition;
-        case idlegolem::game::ActorKind::Skeleton:
+        case idlegolem::game::WorkerRole::Skeleton:
             definition.renderable = idlegolem::game::Renderable{
                 32.0f, 32.0f, SDL_Color{226, 222, 208, 255}, SDL_Color{86, 72, 64, 255}};
             definition.velocity = idlegolem::game::Velocity{glm::vec2{kSkeletonSpeed, 0.0f}};
-            definition.animationSet.state = idlegolem::game::AnimationState::Walk;
-            definition.animationSet.idle = MakeClip(resources.skeletonIdle, 6, 0.18f, 11.0f, 15.0f);
-            definition.animationSet.walk = MakeClip(resources.skeletonWalk, 6, 0.14f, 13.0f, 15.0f);
-            definition.animationSet.dig = MakeClip(resources.skeletonIdle, 6, 0.12f, 11.0f, 15.0f);
-            definition.hasSkeletonBehavior = true;
-            definition.skeletonStoredVelocityX = kSkeletonSpeed;
+            definition.sprite.state = idlegolem::game::AnimationState::Walk;
+            definition.sprite.idle = MakeClip(resources.skeletonIdle, 6, 0.18f, 11.0f, 15.0f);
+            definition.sprite.walk = MakeClip(resources.skeletonWalk, 6, 0.14f, 13.0f, 15.0f);
+            definition.sprite.dig = MakeClip(resources.skeletonIdle, 6, 0.12f, 11.0f, 15.0f);
+            definition.hasDigBehavior = true;
+            definition.storedVelocityX = kSkeletonSpeed;
             return definition;
     }
 
@@ -89,6 +93,13 @@ struct ActorDefinition {
 }  // namespace
 
 namespace idlegolem::game {
+
+Game::Game() {
+    config_.windowWidth = kWindowWidth;
+    config_.windowHeight = kWindowHeight;
+    config_.maxDeltaSeconds = kMaxDeltaSeconds;
+    config_.windowTitle = kWindowTitle;
+}
 
 const engine::ApplicationConfig& Game::Config() const { return config_; }
 
@@ -164,7 +175,7 @@ void Game::Update(const float deltaTime) {
     // Order matters: behavior changes velocity, movement applies it, then
     // animation state and clip playback catch up.
     UpdateBones(clampedDelta);
-    UpdateSkeletons(clampedDelta);
+    UpdateWorkerDigging(clampedDelta);
     UpdatePatrol(clampedDelta);
     UpdateLocomotion();
     UpdateAnimation(clampedDelta);
@@ -189,7 +200,7 @@ void Game::Render(SDL_Renderer* renderer) const {
     };
     SDL_RenderFillRect(renderer, &groundLine);
 
-    RenderActors(renderer);
+    RenderWorkers(renderer);
     RenderBones(renderer);
     RenderBoneCounter(renderer);
 }
@@ -222,12 +233,12 @@ void Game::SpawnBone(const float targetX, const float targetY) {
     counterDirty_ = true;
 }
 
-void Game::SpawnZombie(const float x, const float y) { SpawnActor(ActorKind::Zombie, x, y); }
+void Game::SpawnZombie(const float x, const float y) { SpawnWorker(WorkerRole::Zombie, x, y); }
 
-void Game::SpawnSkeleton(const float x, const float y) { SpawnActor(ActorKind::Skeleton, x, y); }
+void Game::SpawnSkeleton(const float x, const float y) { SpawnWorker(WorkerRole::Skeleton, x, y); }
 
-void Game::SpawnActor(const ActorKind kind, float x, float y) {
-    const ActorDefinition definition = BuildActorDefinition(kind, resources_);
+void Game::SpawnWorker(const WorkerRole role, float x, float y) {
+    const WorkerDefinition definition = BuildWorkerDefinition(role, resources_);
 
     // Clamp mouse spawns into the playable strip.
     x = std::clamp(
@@ -239,8 +250,8 @@ void Game::SpawnActor(const ActorKind kind, float x, float y) {
 
     const entt::entity entity = registry_.create();
 
-    // Every actor gets the shared movement, render, and animation components.
-    registry_.emplace<Actor>(entity, kind);
+    // Every worker gets the shared movement, render, and animation components.
+    registry_.emplace<Worker>(entity, role);
     registry_.emplace<Transform>(entity, Transform{x, y});
     registry_.emplace<Velocity>(entity, definition.velocity);
     registry_.emplace<Facing>(entity, Facing{definition.velocity.value.x <= 0.0f});
@@ -248,12 +259,11 @@ void Game::SpawnActor(const ActorKind kind, float x, float y) {
         entity, PatrolBounds{kSpawnMarginX, static_cast<float>(config_.windowWidth) -
                                                 definition.renderable.width - kSpawnMarginX});
     registry_.emplace<Renderable>(entity, definition.renderable);
-    registry_.emplace<AnimationSet>(entity, definition.animationSet);
+    registry_.emplace<Sprite>(entity, definition.sprite);
 
-    if (definition.hasSkeletonBehavior) {
-        registry_.emplace<SkeletonBehavior>(entity,
-                                            SkeletonBehavior{kSkeletonDigCooldownSeconds, 0.0f,
-                                                             definition.skeletonStoredVelocityX});
+    if (definition.hasDigBehavior) {
+        registry_.emplace<DigBehavior>(entity, DigBehavior{kSkeletonDigCooldownSeconds, 0.0f,
+                                                           definition.storedVelocityX});
     }
 }
 
@@ -286,26 +296,26 @@ void Game::UpdateBones(const float deltaTime) {
     }
 }
 
-void Game::UpdateSkeletons(const float deltaTime) {
-    auto view = registry_.view<SkeletonBehavior, Velocity, AnimationSet>();
+void Game::UpdateWorkerDigging(const float deltaTime) {
+    auto view = registry_.view<DigBehavior, Velocity, Sprite>();
 
-    // Skeletons run a custom walk -> dig -> walk loop.
+    // Dig-capable workers run a custom walk -> dig -> walk loop.
     for (const entt::entity entity : view) {
-        SkeletonBehavior& behavior = view.get<SkeletonBehavior>(entity);
+        DigBehavior& behavior = view.get<DigBehavior>(entity);
         Velocity& velocity = view.get<Velocity>(entity);
-        AnimationSet& animationSet = view.get<AnimationSet>(entity);
+        Sprite& sprite = view.get<Sprite>(entity);
 
         if (behavior.digDurationRemaining > 0.0f) {
             behavior.digDurationRemaining =
                 std::max(0.0f, behavior.digDurationRemaining - deltaTime);
             velocity.value.x = 0.0f;
-            animationSet.SetState(AnimationState::Dig);
+            sprite.SetState(AnimationState::Dig);
 
             if (behavior.digDurationRemaining == 0.0f) {
                 // Resume the stored patrol direction after digging.
                 velocity.value.x = behavior.storedVelocityX;
                 behavior.digCooldownRemaining = kSkeletonDigCooldownSeconds;
-                animationSet.SetState(AnimationState::Walk);
+                sprite.SetState(AnimationState::Walk);
             }
 
             continue;
@@ -318,7 +328,7 @@ void Game::UpdateSkeletons(const float deltaTime) {
             velocity.value.x = 0.0f;
             behavior.digDurationRemaining = kSkeletonDigDurationSeconds;
             behavior.digCooldownRemaining = 0.0f;
-            animationSet.SetState(AnimationState::Dig);
+            sprite.SetState(AnimationState::Dig);
             continue;
         }
 
@@ -326,7 +336,7 @@ void Game::UpdateSkeletons(const float deltaTime) {
             velocity.value.x = behavior.storedVelocityX;
         }
 
-        animationSet.SetState(AnimationState::Walk);
+        sprite.SetState(AnimationState::Walk);
     }
 }
 
@@ -364,39 +374,38 @@ void Game::UpdatePatrol(const float deltaTime) {
 }
 
 void Game::UpdateLocomotion() {
-    auto view = registry_.view<Velocity, AnimationSet>(entt::exclude<SkeletonBehavior>);
+    auto view = registry_.view<Worker, Velocity, Sprite>(entt::exclude<DigBehavior>);
 
-    // Most actors use a simple idle/walk rule based on horizontal speed.
+    // Most workers use a simple idle/walk rule based on horizontal speed.
     for (const entt::entity entity : view) {
         const Velocity& velocity = view.get<Velocity>(entity);
-        AnimationSet& animationSet = view.get<AnimationSet>(entity);
+        Sprite& sprite = view.get<Sprite>(entity);
 
-        // Skeletons are excluded because their own system sets Dig/Walk.
-        animationSet.SetState(velocity.value.x == 0.0f ? AnimationState::Idle
-                                                       : AnimationState::Walk);
+        // Dig-capable workers are excluded because their own system sets Dig/Walk.
+        sprite.SetState(velocity.value.x == 0.0f ? AnimationState::Idle : AnimationState::Walk);
     }
 }
 
 void Game::UpdateAnimation(const float deltaTime) {
-    auto view = registry_.view<AnimationSet>();
+    auto view = registry_.view<Sprite>();
 
     // Advance whichever clip the gameplay systems selected this frame.
     for (const entt::entity entity : view) {
-        AnimationSet& animationSet = view.get<AnimationSet>(entity);
-        animationSet.CurrentClip().animation.Step(deltaTime);
+        Sprite& sprite = view.get<Sprite>(entity);
+        sprite.CurrentClip().animation.Step(deltaTime);
     }
 }
 
-void Game::RenderActors(SDL_Renderer* renderer) const {
-    auto view = registry_.view<Actor, Transform, Renderable, AnimationSet, Facing>();
+void Game::RenderWorkers(SDL_Renderer* renderer) const {
+    auto view = registry_.view<Worker, Transform, Renderable, Sprite, Facing>();
 
     // Resolve the active clip, sample its current frame, and draw it.
     for (const entt::entity entity : view) {
         const Transform& transform = view.get<Transform>(entity);
         const Renderable& renderable = view.get<Renderable>(entity);
-        const AnimationSet& animationSet = view.get<AnimationSet>(entity);
+        const Sprite& sprite = view.get<Sprite>(entity);
         const Facing& facing = view.get<Facing>(entity);
-        const SpriteClip& clip = animationSet.CurrentClip();
+        const AnimationClip& clip = sprite.CurrentClip();
 
         if (clip.texture == nullptr || clip.frameWidth <= 0.0f || clip.frameHeight <= 0.0f) {
             continue;

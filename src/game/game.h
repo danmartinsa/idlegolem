@@ -15,7 +15,7 @@ namespace idlegolem::game {
 // Concrete game layer. Owns ECS state, resources, simulation, and rendering.
 class Game : public engine::GameInterface {
    public:
-    Game() = default;
+    Game();
     ~Game() override = default;
 
     Game(const Game&) = delete;
@@ -44,17 +44,17 @@ class Game : public engine::GameInterface {
     void SpawnBone(float targetX, float targetY);
     void SpawnZombie(float x, float y);
     void SpawnSkeleton(float x, float y);
-    void SpawnActor(ActorKind kind, float x, float y);
+    void SpawnWorker(WorkerRole role, float x, float y);
 
     // Simulation.
     void UpdateBones(float deltaTime);
-    void UpdateSkeletons(float deltaTime);
+    void UpdateWorkerDigging(float deltaTime);
     void UpdatePatrol(float deltaTime);
     void UpdateLocomotion();
     void UpdateAnimation(float deltaTime);
 
     // Rendering.
-    void RenderActors(SDL_Renderer* renderer) const;
+    void RenderWorkers(SDL_Renderer* renderer) const;
     void RenderBones(SDL_Renderer* renderer) const;
     void RenderBoneCounter(SDL_Renderer* renderer) const;
 

@@ -8,8 +8,8 @@ namespace idlegolem::game {
 
 // ECS data shared by gameplay and rendering systems.
 
-// Coarse actor family used for setup and type-specific behavior.
-enum class ActorKind { Zombie, Skeleton };
+// Coarse worker role used for setup and role-specific behavior.
+enum class WorkerRole { Zombie, Skeleton };
 
 // High-level animation state chosen by gameplay code.
 enum class AnimationState { Idle, Walk, Dig };
@@ -44,9 +44,9 @@ class Animation {
     }
 };
 
-// Stores the actor family on an entity.
-struct Actor {
-    ActorKind kind = ActorKind::Zombie;
+// Marks an entity as a shared worker and stores its role.
+struct Worker {
+    WorkerRole role = WorkerRole::Zombie;
 };
 
 // World position in pixels.
@@ -80,21 +80,21 @@ struct Renderable {
 };
 
 // One texture-backed animation clip.
-struct SpriteClip {
+struct AnimationClip {
     SDL_Texture* texture = nullptr;
     Animation animation{};
     float frameWidth = 0.0f;
     float frameHeight = 0.0f;
 };
 
-// All clips for one actor plus the active state.
-struct AnimationSet {
+// Sprite data for one worker plus the active animation state.
+struct Sprite {
     AnimationState state = AnimationState::Idle;
-    SpriteClip idle{};
-    SpriteClip walk{};
-    SpriteClip dig{};
+    AnimationClip idle{};
+    AnimationClip walk{};
+    AnimationClip dig{};
 
-    SpriteClip& CurrentClip() {
+    AnimationClip& CurrentClip() {
         switch (state) {
             case AnimationState::Idle:
                 return idle;
@@ -107,7 +107,7 @@ struct AnimationSet {
         return idle;
     }
 
-    const SpriteClip& CurrentClip() const {
+    const AnimationClip& CurrentClip() const {
         switch (state) {
             case AnimationState::Idle:
                 return idle;
@@ -131,8 +131,8 @@ struct AnimationSet {
     }
 };
 
-// Extra state for the skeleton dig/pause loop.
-struct SkeletonBehavior {
+// Extra state for the dig/pause loop used by some worker roles.
+struct DigBehavior {
     float digCooldownRemaining = 1.8f;
     float digDurationRemaining = 0.0f;
     float storedVelocityX = -32.0f;
