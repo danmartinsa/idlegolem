@@ -1,4 +1,5 @@
 #include "game/game.h"
+
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 
@@ -6,6 +7,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+
 #include "entt/entity/fwd.hpp"
 #include "game/components.h"
 
@@ -54,7 +56,7 @@ struct ActorDefinition {
             return definition;
     }
 
-            return definition;
+    return definition;
 }
 
 }  // namespace
@@ -137,9 +139,7 @@ void Game::SpawnActor(const ActorKind kind, float x, float y) {
                                                 definition.renderable.width - kSpawnMarginX});
     registry_.emplace<Renderable>(entity, definition.renderable);
     registry_.emplace<SpriteSet>(entity, definition.spriteSet);
-
 }
-
 
 void Game::UpdatePatrol(const float deltaTime) {
     auto view = registry_.view<Transform, Velocity, Facing, PatrolBounds>();
@@ -153,7 +153,7 @@ void Game::UpdatePatrol(const float deltaTime) {
 
         transform.x += velocity.value.x * deltaTime;
         transform.y += velocity.value.y * deltaTime;
-        
+
         if (transform.x < patrolBounds.minX) {
             transform.x = patrolBounds.minX;
             if (velocity.value.x < 0.0f) {
@@ -170,7 +170,7 @@ void Game::UpdatePatrol(const float deltaTime) {
     }
 };
 
-void Game::UpdateVelocity(){
+void Game::UpdateVelocity() {
     auto view = registry_.view<Actor, Velocity, SpriteSet>();
 
     for (const entt::entity entity : view) {
@@ -189,7 +189,7 @@ void Game::UpdateAnimation(const float deltaTime) {
         SpriteSet& spriteSet = view.get<SpriteSet>(entity);
         spriteSet.CurrentClip().animation.Step(deltaTime);
     }
-} 
+}
 
 void Game::RenderActors(SDL_Renderer* renderer) const {
     auto view = registry_.view<Actor, Transform, Renderable, SpriteSet, Facing>();
@@ -205,7 +205,7 @@ void Game::RenderActors(SDL_Renderer* renderer) const {
             continue;
         }
 
-        //Read one frame from the sheet and fit (stretch) it intioo the world space
+        // Read one frame from the sheet and fit (stretch) it intioo the world space
         const SDL_FRect src{
             static_cast<float>(clip.animation.CurrentFrame()) * clip.frameWidth,
             0.0f,
@@ -219,7 +219,5 @@ void Game::RenderActors(SDL_Renderer* renderer) const {
                                  facing.isLeft ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
     }
 }
-
-
 
 }  // namespace idlegolem::game

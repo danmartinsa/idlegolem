@@ -64,7 +64,7 @@ struct Facing {
     bool isLeft = true;
 };
 
-//Left and right bounds for simple patrol Movement
+// Left and right bounds for simple patrol Movement
 struct PatrolBounds {
     float minX = 0.0f;
     float maxX = 0.0f;

@@ -54,18 +54,23 @@ bool Application::Run(GameInterface& game) const {
                 game.HandleEvent(event);
             }
         }
+
+        // Delta Time calculation
+        const Uint64 currentTicks = SDL_GetTicks();
+        const float deltaTime = static_cast<float>(currentTicks - lastTicks) / 1000.0f;
+        lastTicks = currentTicks;
+
+        // Game code updates simulation ond records draw calls;
+        // Then presents
+        game.Update(deltaTime);
+        game.Render(renderer);
+        SDL_RenderPresent(renderer);
     }
-
-    // Delta Time calculation
-    const Uint64 currentTicks = SDL_GetTicks();
-    const float deltaTime = static_cast<float>(currentTicks - lastTicks) / 1000.0f;
-    lastTicks = currentTicks;
-
-    // Game code updates simulation ond records draw calls;
-    // Then presents
-    game.Update(deltaTime);
-    game.Render(renderer);
-    SDL_RenderPresent(renderer);
+    // Let game-owned resources release before SDL objects go away.
+    game.Shutdown();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
     return true;
 }

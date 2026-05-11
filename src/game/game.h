@@ -49,7 +49,6 @@ class Game : public engine::GameInterface {
     void UpdatePatrol(float deltaTime);
     void UpdateVelocity();
 
-
     // Rendering
     void RenderActors(SDL_Renderer* renderer) const;
     void RenderBones(SDL_Renderer* renderer) const;
