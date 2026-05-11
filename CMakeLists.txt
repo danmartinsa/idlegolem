@@ -35,68 +35,68 @@ option(
 )
 
 if(IDLEGOLEM_USE_SYSTEM_SDL3)
-  find_package(SDL3 3.4.4 CONFIG QUIET)
+    find_package(SDL3 3.4.4 CONFIG QUIET)
 endif()
 
 if(IDLEGOLEM_USE_SYSTEM_ENTT)
-  find_package(EnTT CONFIG QUIET)
+    find_package(EnTT CONFIG QUIET)
 endif()
 
 if(IDLEGOLEM_USE_SYSTEM_GLM)
-  find_package(glm CONFIG QUIET)
+    find_package(glm CONFIG QUIET)
 endif()
 
 if(IDLEGOLEM_USE_SYSTEM_SDL3_TTF)
-  find_package(SDL3_ttf 3.2.2 CONFIG QUIET)
+    find_package(SDL3_ttf 3.2.2 CONFIG QUIET)
 endif()
 
 if(NOT SDL3_FOUND OR NOT EnTT_FOUND OR NOT glm_FOUND OR NOT SDL3_ttf_FOUND)
-  include(FetchContent)
+    include(FetchContent)
 endif()
 
 if(NOT SDL3_FOUND)
-  set(SDL_SHARED ON CACHE BOOL "" FORCE)
-  set(SDL_STATIC OFF CACHE BOOL "" FORCE)
-  set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
-  set(SDL_TESTS OFF CACHE BOOL "" FORCE)
+    set(SDL_SHARED ON CACHE BOOL "" FORCE)
+    set(SDL_STATIC OFF CACHE BOOL "" FORCE)
+    set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+    set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 
-  FetchContent_Declare(
+    FetchContent_Declare(
         SDL3
         URL
             https://github.com/libsdl-org/SDL/archive/refs/tags/release-3.4.4.tar.gz
     )
 
-  FetchContent_MakeAvailable(SDL3)
+    FetchContent_MakeAvailable(SDL3)
 endif()
 
 if(NOT EnTT_FOUND)
-  FetchContent_Declare(
+    FetchContent_Declare(
         EnTT
         GIT_REPOSITORY https://github.com/skypjack/entt.git
         GIT_TAG v3.16.0
         GIT_SHALLOW TRUE
     )
 
-  FetchContent_MakeAvailable(EnTT)
+    FetchContent_MakeAvailable(EnTT)
 endif()
 
 if(NOT glm_FOUND)
-  FetchContent_Declare(
+    FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
         GIT_TAG 1.0.1
         GIT_SHALLOW TRUE
     )
 
-  FetchContent_MakeAvailable(glm)
+    FetchContent_MakeAvailable(glm)
 endif()
 
 if(NOT SDL3_ttf_FOUND)
-  set(SDLTTF_VENDORED ON CACHE BOOL "" FORCE)
-  set(SDLTTF_SAMPLES OFF CACHE BOOL "" FORCE)
-  set(SDLTTF_INSTALL OFF CACHE BOOL "" FORCE)
+    set(SDLTTF_VENDORED ON CACHE BOOL "" FORCE)
+    set(SDLTTF_SAMPLES OFF CACHE BOOL "" FORCE)
+    set(SDLTTF_INSTALL OFF CACHE BOOL "" FORCE)
 
-  FetchContent_Declare(
+    FetchContent_Declare(
         SDL3_ttf
         GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
         GIT_TAG release-3.2.2
@@ -104,14 +104,14 @@ if(NOT SDL3_ttf_FOUND)
         GIT_SUBMODULES_RECURSE TRUE
     )
 
-  FetchContent_MakeAvailable(SDL3_ttf)
+    FetchContent_MakeAvailable(SDL3_ttf)
 endif()
 
 add_executable(
     idlegolem
     src/engine/application.cpp
     src/game/game.cpp
-    src/game/resources.cpp
+    src/game/resources/resources.cpp
     src/main.cpp
 )
 
@@ -123,7 +123,7 @@ target_link_libraries(
 )
 
 if(CMAKE_EXPORT_COMPILE_COMMANDS)
-  file(
+    file(
         CREATE_LINK
             "${CMAKE_BINARY_DIR}/compile_commands.json"
             "${CMAKE_SOURCE_DIR}/compile_commands.json"

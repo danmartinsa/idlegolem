@@ -48,11 +48,13 @@ struct ActorDefinition {
             definition.renderable = idlegolem::game::Renderable{
                 32.0f, 32.0f, SDL_Color{124, 182, 110, 255}, SDL_Color{54, 70, 48, 255}};
             definition.velocity = idlegolem::game::Velocity{glm::vec2{kZombieSpeed, 0.0f}};
-            definition.animationSet.state = idlegolem::game::AnimationState::Walk;
-            definition.animationSet.idle = MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
-            definition.animationSet.walk = MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
+            definition.spriteSet.state = idlegolem::game::AnimationState::Walk;
+            definition.spriteSet.idle = MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
+            definition.spriteSet.walk = MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
             return definition;
     }
+
+            return definition;
 }
 
 }  // namespace
@@ -97,7 +99,7 @@ void Game::Update(const float deltaTime) {
 
     // Order matters: behavior changes velocity, movement applies it, then
     // animation state and clip playback catch up.
-    UpdateBones(clampedDelta);
+    // UpdateBones(clampedDelta);
     UpdatePatrol(clampedDelta);
     UpdateVelocity();
     UpdateAnimation(clampedDelta);
@@ -215,9 +217,9 @@ void Game::RenderActors(SDL_Renderer* renderer) const {
 
         SDL_RenderTextureRotated(renderer, clip.texture, &src, &dst, 0.0, nullptr,
                                  facing.isLeft ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
-
-
     }
 }
+
+
 
 }  // namespace idlegolem::game
