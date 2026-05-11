@@ -40,14 +40,19 @@ class Game : public engine::GameInterface {
 
    private:
     // Input and Spawn
-    void SpawnZombie(float x, float y);
+    void SpawnBone(float targetX, float targetY);
     void SpawnActor(ActorKind kind, float x, float y);
 
     // Simulation
+    void UpdateBones(float deltaTime);
     void UpdateAnimation(float deltaTime);
+    void UpdatePatrol(float deltaTime);
+    void UpdateVelocity();
+
 
     // Rendering
     void RenderActors(SDL_Renderer* renderer) const;
+    void RenderBones(SDL_Renderer* renderer) const;
 
     // Core state
     entt::registry registry_{};

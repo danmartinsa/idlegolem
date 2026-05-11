@@ -64,6 +64,12 @@ struct Facing {
     bool isLeft = true;
 };
 
+//Left and right bounds for simple patrol Movement
+struct PatrolBounds {
+    float minX = 0.0f;
+    float maxX = 0.0f;
+};
+
 // Sprite size and simple fallback tint data
 struct Renderable {
     float width = 128.0f;
@@ -80,7 +86,8 @@ struct SpriteClip {
     float frameHeight = 0.0f;
 };
 
-struct AnimationSet {
+// Sprite data for one acotr plus the active animation state.
+struct SpriteSet {
     AnimationState state = AnimationState::Idle;
     SpriteClip idle{};
     SpriteClip walk{};

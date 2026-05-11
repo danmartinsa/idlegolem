@@ -1,9 +1,13 @@
 #include "game/game.h"
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
 
 #include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
+#include "entt/entity/fwd.hpp"
+#include "game/components.h"
 
 namespace {
 // Local gameplay tuning values.
@@ -21,7 +25,7 @@ constexpr const char* kWindowTitle = "Idle Golem";
 struct ActorDefinition {
     idlegolem::game::Renderable renderable;
     idlegolem::game::Velocity velocity;
-    idlegolem::game::AnimationSet animationSet;
+    idlegolem::game::SpriteSet spriteSet;
 };
 
 [[nodiscard]] idlegolem::game::SpriteClip MakeClip(SDL_Texture* texture, int frameCount,
@@ -33,25 +37,21 @@ struct ActorDefinition {
         frameWidth,
         frameHeight,
     };
+}
 
-    [[nodiscard]] ActorDefinition BuildActorDefinition(
-        const idlegolem::game::ActorKind kind, const idlegolem::game::Resources& resources) {
-        ActorDefinition definition{};
+[[nodiscard]] ActorDefinition BuildActorDefinition(const idlegolem::game::ActorKind kind,
+                                                   const idlegolem::game::Resources& resources) {
+    ActorDefinition definition{};
 
-        switch (kind) {
-            case idlegolem::game::ActorKind::Zombie:
-                definition.renderable = idlegolem::game::Renderable{
-                    32.0f, 32.0f, SDL_Color{124, 182, 110, 255}, SDL_Color{54, 70, 48, 255}};
-                definition.velocity = idlegolem::game::Velocity{glm::vec2{kZombieSpeed, 0.0f}};
-                definition.animationSet.state = idlegolem::game::AnimationState::Walk;
-                definition.animationSet.idle =
-                    MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
-                definition.animationSet.walk =
-                    MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
-                definition.animationSet.dig =
-                    MakeClip(resources.zombieIdle, 6, 0.20f, 22.0f, 18.0f);
-                return definition;
-        }
+    switch (kind) {
+        case idlegolem::game::ActorKind::Zombie:
+            definition.renderable = idlegolem::game::Renderable{
+                32.0f, 32.0f, SDL_Color{124, 182, 110, 255}, SDL_Color{54, 70, 48, 255}};
+            definition.velocity = idlegolem::game::Velocity{glm::vec2{kZombieSpeed, 0.0f}};
+            definition.animationSet.state = idlegolem::game::AnimationState::Walk;
+            definition.animationSet.idle = MakeClip(resources.zombieIdle, 6, 0.16f, 22.0f, 18.0f);
+            definition.animationSet.walk = MakeClip(resources.zombieWalk, 8, 0.10f, 21.0f, 19.0f);
+            return definition;
     }
 }
 
@@ -82,13 +82,141 @@ void Game::HandleEvent(const SDL_Event& event) {
 
         switch (event.button.button) {
             case SDL_BUTTON_LEFT:
-                SpawnWorker(spawnX, spawnY);
                 break;
             case SDL_BUTTON_RIGHT:
+                SpawnActor(ActorKind::Zombie, spawnX, spawnY);
                 break;
             default:
                 break;
         }
+    }
+}
+
+void Game::Update(const float deltaTime) {
+    const float clampedDelta = std::clamp(deltaTime, 0.0F, config_.maxDeltaSeconds);
+
+    // Order matters: behavior changes velocity, movement applies it, then
+    // animation state and clip playback catch up.
+    UpdateBones(clampedDelta);
+    UpdatePatrol(clampedDelta);
+    UpdateVelocity();
+    UpdateAnimation(clampedDelta);
+}
+
+void Game::Render(SDL_Renderer* renderer) const {
+    // Draw a simple background first, then render the actors on top.
+    SDL_SetRenderDrawColor(renderer, 18, 18, 24, 255);
+    SDL_RenderClear(renderer);
+
+    RenderActors(renderer);
+    // RenderBones(renderer);
+    // RenderBoneCounter(renderer);
+}
+
+void Game::SpawnActor(const ActorKind kind, float x, float y) {
+    const ActorDefinition definition = BuildActorDefinition(kind, resources_);
+
+    // Clamp mouse spawns into the playable strip
+    x = std::clamp(
+        x, kSpawnMarginX,
+        static_cast<float>(config_.windowWidth) - definition.renderable.width - kSpawnMarginX);
+    y = std::clamp(
+        y, kSpawnMarginY,
+        static_cast<float>(config_.windowHeight) - definition.renderable.height - kSpawnMarginY);
+
+    const entt::entity entity = registry_.create();
+
+    registry_.emplace<Actor>(entity, kind);
+    registry_.emplace<Transform>(entity, Transform{x, y});
+    registry_.emplace<Velocity>(entity, definition.velocity);
+    registry_.emplace<Facing>(entity, Facing{definition.velocity.value.x <= 0.0f});
+    registry_.emplace<PatrolBounds>(
+        entity, PatrolBounds{kSpawnMarginX, static_cast<float>(config_.windowWidth) -
+                                                definition.renderable.width - kSpawnMarginX});
+    registry_.emplace<Renderable>(entity, definition.renderable);
+    registry_.emplace<SpriteSet>(entity, definition.spriteSet);
+
+}
+
+
+void Game::UpdatePatrol(const float deltaTime) {
+    auto view = registry_.view<Transform, Velocity, Facing, PatrolBounds>();
+
+    // Apply movement, then flip direction when patrol bound are hit
+    for (const entt::entity entity : view) {
+        Transform& transform = view.get<Transform>(entity);
+        Velocity& velocity = view.get<Velocity>(entity);
+        Facing& facing = view.get<Facing>(entity);
+        const PatrolBounds& patrolBounds = view.get<PatrolBounds>(entity);
+
+        transform.x += velocity.value.x * deltaTime;
+        transform.y += velocity.value.y * deltaTime;
+        
+        if (transform.x < patrolBounds.minX) {
+            transform.x = patrolBounds.minX;
+            if (velocity.value.x < 0.0f) {
+                velocity.value.x = -velocity.value.x;
+                facing.isLeft = true;
+            }
+        } else if (transform.x > patrolBounds.maxX) {
+            transform.x = patrolBounds.maxX;
+            if (velocity.value.x > 0.0f) {
+                velocity.value.x = -velocity.value.x;
+                facing.isLeft = false;
+            }
+        }
+    }
+};
+
+void Game::UpdateVelocity(){
+    auto view = registry_.view<Actor, Velocity, SpriteSet>();
+
+    for (const entt::entity entity : view) {
+        const Velocity& velocity = view.get<Velocity>(entity);
+        SpriteSet& spriteSet = view.get<SpriteSet>(entity);
+
+        spriteSet.SetState(velocity.value.x == 0.0f ? AnimationState::Idle : AnimationState::Walk);
+    }
+}
+
+void Game::UpdateAnimation(const float deltaTime) {
+    auto view = registry_.view<SpriteSet>();
+
+    // Advance clip the gameplay system selected this frame
+    for (const entt::entity entity : view) {
+        SpriteSet& spriteSet = view.get<SpriteSet>(entity);
+        spriteSet.CurrentClip().animation.Step(deltaTime);
+    }
+} 
+
+void Game::RenderActors(SDL_Renderer* renderer) const {
+    auto view = registry_.view<Actor, Transform, Renderable, SpriteSet, Facing>();
+
+    for (const entt::entity entity : view) {
+        const Transform& transform = view.get<Transform>(entity);
+        const Renderable& renderable = view.get<Renderable>(entity);
+        const SpriteSet& spriteSet = view.get<SpriteSet>(entity);
+        const Facing& facing = view.get<Facing>(entity);
+        const SpriteClip& clip = spriteSet.CurrentClip();
+
+        if (clip.texture == nullptr || clip.frameWidth <= 0.0f || clip.frameHeight <= 0.0f) {
+            continue;
+        }
+
+        //Read one frame from the sheet and fit (stretch) it intioo the world space
+        const SDL_FRect src{
+            static_cast<float>(clip.animation.CurrentFrame()) * clip.frameWidth,
+            0.0f,
+            clip.frameWidth,
+            clip.frameHeight,
+        };
+
+        const SDL_FRect dst{transform.x, transform.y, renderable.width, renderable.height};
+
+        SDL_RenderTextureRotated(renderer, clip.texture, &src, &dst, 0.0, nullptr,
+                                 facing.isLeft ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
+
+
     }
 }
 
