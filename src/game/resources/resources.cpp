@@ -9,6 +9,8 @@ constexpr const char* kZombieIdlePath =
 constexpr const char* kZombieWalkPath =
     "assets/pppack/Enemies/Zombie_Axe/Zombie_Axe_Side-left_Walk-Sheet8.png";
 constexpr const char* kBonePath = "assets/bone.png";
+constexpr const char* kTowerPath = "assets/tower.png";
+constexpr const char* kCrossPath = "assets/cross.png";
 
 }  // namespace
 
@@ -73,6 +75,16 @@ void Resources::LoadAssets(SDL_Renderer* renderer) {
     bone = LoadTexture(renderer, kBonePath);
     if (bone != nullptr) {
         textures.push_back(bone);
+    }
+
+    tower = LoadTexture(renderer, kTowerPath);
+    if (tower != nullptr) {
+        textures.push_back(tower);
+    }
+
+    cross = LoadTexture(renderer, kCrossPath);
+    if (cross != nullptr) {
+        textures.push_back(cross);
     }
 };
 

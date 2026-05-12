@@ -48,6 +48,8 @@ struct Actor {
     ActorKind kind = ActorKind::Zombie;
 };
 
+struct Cross {};
+
 // World position in pixels
 struct Transform {
     float x = 0.0f;

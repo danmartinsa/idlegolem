@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -17,6 +18,8 @@ constexpr float kSpawnMarginX = 24.0f;
 constexpr float kSpawnMarginY = 32.0f;
 constexpr float kZombieSpeed = -54.0f;
 constexpr float kGroundTopOffset = 86.0f;
+// Cross Definition
+constexpr float kCrossRenderSize = 8.0f;
 // Renderer Options
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 720;
@@ -70,6 +73,8 @@ bool Game::Initialize(SDL_Renderer* renderer) {
     registry_.clear();
 
     resources_.LoadAssets(renderer);
+
+    RenderTower(renderer, resources_.tower);
     return true;
 }
 
@@ -86,9 +91,10 @@ void Game::HandleEvent(const SDL_Event& event) {
 
         switch (event.button.button) {
             case SDL_BUTTON_LEFT:
+                SpawnActor(ActorKind::Zombie, spawnX, spawnY);
                 break;
             case SDL_BUTTON_RIGHT:
-                SpawnActor(ActorKind::Zombie, spawnX, spawnY);
+                SpawnCross();
                 break;
             default:
                 break;
@@ -113,6 +119,8 @@ void Game::Render(SDL_Renderer* renderer) const {
     SDL_RenderClear(renderer);
 
     RenderActors(renderer);
+    RenderTower(renderer, resources_.tower);
+    RenderCross(renderer, resources_.cross);
     // RenderBones(renderer);
     // RenderBoneCounter(renderer);
 }
@@ -189,6 +197,72 @@ void Game::UpdateAnimation(const float deltaTime) {
         SpriteSet& spriteSet = view.get<SpriteSet>(entity);
         spriteSet.CurrentClip().animation.Step(deltaTime);
     }
+}
+
+void Game::RenderTower(SDL_Renderer* renderer, SDL_Texture* tex) const {
+    const SDL_FRect src{
+        0.0f,
+        0.0f,
+        48.0f,
+        128.0f,
+    };
+
+    const SDL_FRect dst{
+        200.0f,
+        200.0f,
+        48.0f,
+        128.0f,
+    };
+
+    SDL_RenderTexture(renderer, tex, &src, &dst);
+}
+
+void Game::SpawnCross() {
+    if (resources_.cross == nullptr) {
+        SDL_Log("Cross texture is not loaded.");
+        return;
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> disX(100.f, 200.f);
+    std::uniform_real_distribution<float> disY(500.f, 510.f);
+
+    float posX = disX(gen);
+    float posY = disY(gen);
+
+    const entt::entity entity = registry_.create();
+    registry_.emplace<Transform>(entity, Transform{posX, posY});
+    registry_.emplace<Renderable>(
+        entity, Renderable{kCrossRenderSize, kCrossRenderSize, SDL_Color{255, 255, 255, 255},
+                           SDL_Color{255, 255, 255, 255}});
+    registry_.emplace<Cross>(entity);
+}
+
+void Game::RenderCross(SDL_Renderer* renderer, SDL_Texture* tex) const {
+    auto view = registry_.view<Cross, Transform, Renderable>();
+
+    for (const entt::entity entity : view){
+        const Transform& transform = view.get<Transform>(entity);
+        const Renderable& renderable = view.get<Renderable>(entity);
+
+    const SDL_FRect src{
+        0.0f,
+        0.0f,
+        kCrossRenderSize,
+        kCrossRenderSize,
+    };
+
+    const SDL_FRect dst{
+        transform.x,
+        transform.y,
+        renderable.width,
+        renderable.height
+    };
+
+    SDL_RenderTexture(renderer, tex, &src, &dst);
+    }
+
 }
 
 void Game::RenderActors(SDL_Renderer* renderer) const {

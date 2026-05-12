@@ -22,6 +22,8 @@ class Resources {
     SDL_Texture* zombieIdle = nullptr;
     SDL_Texture* zombieWalk = nullptr;
     SDL_Texture* bone = nullptr;
+    SDL_Texture* tower = nullptr;
+    SDL_Texture* cross = nullptr;
 
     // Free loaded texture and reset cached pointer
     void DestroyAssets();

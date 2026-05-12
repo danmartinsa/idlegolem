@@ -41,6 +41,7 @@ class Game : public engine::GameInterface {
    private:
     // Input and Spawn
     void SpawnBone(float targetX, float targetY);
+    void SpawnCross();
     void SpawnActor(ActorKind kind, float x, float y);
 
     // Simulation
@@ -50,6 +51,8 @@ class Game : public engine::GameInterface {
     void UpdateVelocity();
 
     // Rendering
+    void RenderTower(SDL_Renderer* renderer, SDL_Texture* tex) const;
+    void RenderCross(SDL_Renderer* renderer, SDL_Texture* tex) const;
     void RenderActors(SDL_Renderer* renderer) const;
     void RenderBones(SDL_Renderer* renderer) const;
 
