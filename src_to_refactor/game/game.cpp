@@ -460,7 +460,7 @@ void Game::RenderBoneCounter(SDL_Renderer* renderer) const {
 
     if (resources_.bone != nullptr) {
         const SDL_FRect src{0.0f, 0.0f, kBoneSourceSize, kBoneSourceSize};
-        const SDL_FRect dst{panel.x + kUiPadding, panel.y + kUiPadding, kUiIconSize, kUiIconSize};
+        cost SDL_FRect dst{panel.x + kUiPadding, panel.y + kUiPadding, kUiIconSize, kUiIconSize};
         SDL_RenderTexture(renderer, resources_.bone, &src, &dst);
     }
 

@@ -158,13 +158,13 @@ void Game::UpdatePatrol(const float deltaTime) {
             transform.x = patrolBounds.minX;
             if (velocity.value.x < 0.0f) {
                 velocity.value.x = -velocity.value.x;
-                facing.isLeft = true;
+                facing.isLeft = false;
             }
         } else if (transform.x > patrolBounds.maxX) {
             transform.x = patrolBounds.maxX;
             if (velocity.value.x > 0.0f) {
                 velocity.value.x = -velocity.value.x;
-                facing.isLeft = false;
+                facing.isLeft = true;
             }
         }
     }
